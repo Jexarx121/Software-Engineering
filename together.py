@@ -4,6 +4,7 @@ from Ev import ElectricVehicle
 from abc import ABC, abstractmethod
 
 
+
 class Sensor(ABC):
   """the abstract class that our 3 sensors(voltage,current,temperature) will inherit from"""
 
@@ -13,12 +14,6 @@ class Sensor(ABC):
   @abstractmethod
   def readBattery(self, battery):
     """each sensor reads the battery cell(s) and gets its respective value from the battery"""
-    pass
-
-  def processData(self):
-    # From Jack's data flow diagram, the sensors do some basic processing
-    # The sensors will check their respective values and check if they're within range
-    # If outside range, raise a fault or alert the BMS
     pass
 
 
@@ -38,6 +33,8 @@ class CurrentSensor(Sensor):
 
 class VoltageSensor(Sensor):
   """represents a voltage sensor"""
+#   use range 300-600
+# 
 
   def __init__(self):
       super().__init__()
@@ -58,6 +55,16 @@ class BatteryCell:
       self.id = BatteryCell.id
       BatteryCell.id += 1
       
+      # Battery cell amount variable - curerntly 8
+      # Stored in some data structure 
+      # Each cell has quite a few batteries
+      
+      # generate random values
+      # ranges for 1 type of car - any vehicle within that range is now compatible with our BMS
+    	# Voltage - 200V - 500V - threshold needs be derived from power
+      # Current - 100A - 250A -  derive current from both power parameter and voltage
+      # Temperature - 50 degrees C upper bound - heat derived from both current and voltage 
+      
   def getState(self):
       return self._state
 
@@ -65,8 +72,11 @@ class BatteryCell:
       self._state = state
 
 
-  def generateData(self, power):
+  def generateData(self, power, typeOfCar):
       '''generate values for voltage, current and temperature'''
+      # range of values depend on the type of car 
+      # temperature ranges are consistently same range regardless of car - quicker cooling
+
       pass
 
 
@@ -82,7 +92,9 @@ class ElectricVehicle():
       self._batteryCell = BatteryCell()
       self._mode = True
       self._lowMode = False
-
+      
+      # 1 type of car - fixed range of values of parameters
+      
       # thread that simulates when running the vehicle
       # random values to simulate driving in various conditions
       # that dictate the amount of power drawn from batteries
@@ -106,7 +118,7 @@ class ElectricVehicle():
     # BMS then will limit the voltage, current and temperature of the cells
     # Load will be reduced
     # power will be reduced
-    pass
+    self._state = not self._state
       
   def run(self):
     # Display the UI that will show the attributes of the vehicle running
@@ -131,6 +143,12 @@ class BatteryManagementSystem:
       self.odometer = Odometer()
       self.charger = Charger()
     
+
+  def processData(self):
+  	# From Jack's data flow diagram, the sensors do some basic processing
+  	# The sensors will check their respective values and check if they're within range
+  	# If outside range, raise a fault or alert the BMS
+  	pass
   
   def getStateOfCharge(self):
     '''calculate SOC of battery using either Coulomb counting or Kalman filtering'''
@@ -150,4 +168,3 @@ class BatteryManagementSystem:
   stateOfCharge = property(getStateOfCharge)
   stateOfHealth = property(getStateOfHealth)
   state = property(getState)
-    
