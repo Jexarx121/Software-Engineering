@@ -34,6 +34,8 @@ class ElectricVehicle():
     soh and driving range. Should do some error/warning checks too.
     Then displays all in UI
     '''
+    if self._charging:
+      self.charge()
 
     if self._draw == 0: # if car idling
       self._draw += randint(0, 5)
@@ -56,12 +58,24 @@ class ElectricVehicle():
     self._drivingRange = self._bms.getDrivingRange()
     self._bms.cooling(self._battery)
 
-    self._UI.display(self._bms.stateOfCharge, self._bms.stateOfHealth, self._bms.drivingRange, self._bms.warnings)
+    self._ui.display(self._bms.stateOfCharge, self._bms.stateOfHealth, self._bms.drivingRange, self._bms.warnings)
 
   def charge(self):
     '''Change charging state'''
-    self._charging = not self._charging
-    
+    while self._charging:
+      self._draw = -1
+
+    for batteryCell in self._battery:
+      batteryCell.generateData(self._draw)
+
+    self._bms.loadBalance(self._battery)
+    self._stateOfCharge = self._bms.getStateOfCharge(self._battery)
+    self._bms.cooling(self._battery)
+
+    self._ui.display_charging(self._stateOfCharge)
+
+    # check if still charging
+
   def power(self):
     '''Not sure what this method is for?'''
     pass
