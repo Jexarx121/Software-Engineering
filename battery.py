@@ -8,7 +8,7 @@ class BatteryCell:
     id = 0
 
     def __init__(self):
-        
+
         if BatteryCell.id >= 8:
             return "All the battery cells have been made."
 
@@ -26,31 +26,47 @@ class BatteryCell:
         # Each cell has quite a few batteries
         
 
-    def generateData(self, power):
-        '''generate values for voltage, current and temperature'''
+    def generateVoltageData(self, power):
+        '''generate random voltage values for the battery cells'''
 
         if power <= 0 or power >= 1:
             return 'There is a fault with the amount of power required for the vehicle.'
 
         # Voltage - 200V - 500V - threshold needs be derived from power
-        maxVoltage = 500
+        # All parameters divided by number of cells
+        maxVoltage = 500 / BatteryCell.id
         voltageGenerated = maxVoltage * power
 
         self._voltage = randint(voltageGenerated, maxVoltage)
         self._voltage += self.plusMinus(power)
 
-        # Current - 100A - 250A -  derive current from both power parameter and voltage
-        maxCurrent = 250
+        return self._voltage
+
+    def generateCurrentData(self, power):
+        ''' Generates a random current value for the battery cells'''
+
+        # Current - 100A - 250A - derive current from both power parameter and voltage
+        maxCurrent = 250 / BatteryCell.id
         currentGenerated = maxCurrent * power
         self._current = randint(currentGenerated, maxCurrent)
         self._current += self.plusMinus(power)
 
+        return self._current
+
+
+    def generateTemperatureData(self, power):
+        '''Generates a random temperature value for the battery cells'''
+
+
         # Temperature - 50 degrees C upper bound - heat derived from both current and voltage 
         # temperature ranges are consistently same range regardless of car - quicker cooling
-        maxTemperature = 50
+        maxTemperature = 50 
         temperatureGenerated = maxTemperature * power
         self._temperature = randint(temperatureGenerated, maxTemperature)
         self._temperature += self.plusMinus(power)
+
+        return self._temperature
+
 
     # generates random values added to each parameter to randomise each further
     # based on power needed for ev, the demand for current, voltage and temperature
