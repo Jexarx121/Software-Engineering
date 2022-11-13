@@ -1,4 +1,5 @@
 from sensor import Sensor
+from battery import BatteryCell
 
 class CurrentSensor(Sensor):
   """represents a current sensor"""
