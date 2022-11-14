@@ -26,26 +26,23 @@ class BatteryManagementSystem:
         self._currentThreshold = 0
 
         self._stateOfCharge = 0
-        self._stateOfHealth
+        self._stateOfHealth = 0
 
         # self.odometer = Odometer()
         # self.charger = Charger()
-        
-    
-    def getStateOfCharge(self):
-        return self._stateOfCharge
-    
-    def setStateOfCharge(self, stateOfCharge):
-        self._stateOfCharge = stateOfCharge
-    
-    def getStateOfHealth(self):
-        return self._stateOfHealth
+
+    def displayGui(self):
+        # pass the returned values from the odometer, charging, SOC, SOH etc
+        # return values to GUI object
+        pass
         
     def socAlgorithm(self):
         '''calculate SOC of battery using either Coulomb counting or Kalman filtering'''
+        pass
 
     def sohAlgorithm(self):
         '''calculate SOH of battery using algo involving internal resistance measurement, counting charge/discharge cycles, SOC'''
+        pass
 
     def cooling(self):
         '''cool the battery(reduce temperature) if temperature is over limit'''
@@ -67,7 +64,49 @@ class BatteryManagementSystem:
         # BMS needs to detect that and prohibit load balancing with these type of cells
         pass
 
+    def stateOfChargeWarning(self):
+        # warn the user if SOC is below a threshold to start charging
+        # Or if the charging is done that the charging has ceased
+        # display on gui
+        pass
 
+    def stateOfHealthWarning(self):
+        # warn the user if the SOH is below a threshold
+        # substitute the battery and display on gui
+        pass
     
-    stateOfCharge = property(getStateOfCharge)
-    stateOfHealth = property(getStateOfHealth)
+    def getStateOfCharge(self):
+        return self._stateOfCharge
+    
+    def setStateOfCharge(self, stateOfCharge):
+        self._stateOfCharge = stateOfCharge
+    
+    def getStateOfHealth(self):
+        return self._stateOfHealth
+
+    def setStateOfHealth(self, stateOfHealth):
+        self._stateOfHealth = stateOfHealth
+
+    def getTemperatureThreshold(self):
+        return self._temperatureThreshold
+
+    def setTemperatureThreshold(self, temperatureThreshold):
+        self._temperatureThreshold = temperatureThreshold
+
+    def getVoltageThreshold(self):
+        return self._voltageThreshold
+    
+    def setVoltageThreshold(self, voltageThreshold):
+        self._voltageThreshold = voltageThreshold
+
+    def getCurrentThreshold(self):
+        return self._currentThreshold
+
+    def setCurrentThreshold(self, currentThreshold):
+        self._currentThreshold = currentThreshold
+    
+    temperatureThreshold = property(getTemperatureThreshold, setTemperatureThreshold)
+    voltageThreshold = property(getVoltageThreshold, setVoltageThreshold)
+    currentThreshold = property(getCurrentThreshold, setVoltageThreshold)
+    stateOfCharge = property(getStateOfCharge, setStateOfCharge)
+    stateOfHealth = property(getStateOfHealth, setStateOfHealth)
