@@ -2,20 +2,20 @@ from temperatureSensor import TemperatureSensor
 from voltageSensor import VoltageSensor
 from currentSensor import CurrentSensor
 from battery import BatteryCell
+from batteryModule import BatteryModule
 
 class BatteryManagementSystem:
+
+    NUMBER_OF_BATTERIES = 8
+
     def __init__(self):
         # all the calculaions in here
 
         # All battery cells made here
-        self.batteryCell1 = BatteryCell()
-        self.batteryCell2 = BatteryCell()
-        self.batteryCell3 = BatteryCell()
-        self.batteryCell4 = BatteryCell()
-        self.batteryCell5 = BatteryCell()
-        self.batteryCell6 = BatteryCell()
-        self.batteryCell7 = BatteryCell()
-        self.batteryCell8 = BatteryCell()
+        # Every element in the battery pack is an object
+        # of Battery Module class which represents 4 objects
+        # Battery Cell, Temp, Current and Voltage Sensors
+        self._batteryPack = [BatteryModule() for i in range(BatteryManagementSystem.NUMBER_OF_BATTERIES)] 
 
         self.temperatureSensor = TemperatureSensor()
         self.currentSensor = CurrentSensor()
@@ -31,10 +31,12 @@ class BatteryManagementSystem:
         # self.odometer = Odometer()
         # self.charger = Charger()
 
-    def displayGui(self):
-        # pass the returned values from the odometer, charging, SOC, SOH etc
-        # return values to GUI object
-        pass
+    def processData(self):
+        '''From battery pack, read each sensor data and check for errors
+        If errors exist, run their respective function 
+        voltage - load balancing
+        temperature - cooling'''
+
         
     def socAlgorithm(self):
         '''calculate SOC of battery using either Coulomb counting or Kalman filtering'''
@@ -43,6 +45,7 @@ class BatteryManagementSystem:
     def sohAlgorithm(self):
         '''calculate SOH of battery using algo involving internal resistance measurement, counting charge/discharge cycles, SOC'''
         pass
+
 
     def cooling(self):
         '''cool the battery(reduce temperature) if temperature is over limit'''
@@ -67,13 +70,27 @@ class BatteryManagementSystem:
     def stateOfChargeWarning(self):
         # warn the user if SOC is below a threshold to start charging
         # Or if the charging is done that the charging has ceased
-        # display on gui
-        pass
+        # display on gui from EV method
+        
+        if self._stateOfCharge < 10:
+            return "Battery Percent is lower than 10%. Please go to the nearest station to charge."
+        elif self._stateOfCharge < 25:
+            return "Battery Percent is at 25%. Please consider charging soon."
+        elif self._stateOfCharge >= 80:
+            return "Battery Percent is near full. Charging will be complete soon."
+        elif self._stateOfCharge == 100:
+            return "Battery Percent is now 100%. Please disconnect the charger to conserve battery health."
 
     def stateOfHealthWarning(self):
         # warn the user if the SOH is below a threshold
-        # substitute the battery and display on gui
-        pass
+        # substitute the battery and display on gui from EV method
+
+        if self._stateOfHealth < 10:
+            return "Battery health is severly deteriorated. Please consider changing the battery immediately for continued and safe usage of the vehicle."
+        elif self._stateOfHealth < 25:
+            return "Battery health is very deteriorated. Please consider changing the battery soon for continued and safe usage of the vehicle."
+        elif self._stateOfHealth < 50:
+            return "Battery health has deteriorated. Please consider checking the settings for detailed viewing of the battery health status."
     
     def getStateOfCharge(self):
         return self._stateOfCharge
