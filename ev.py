@@ -1,5 +1,5 @@
 from battery import BatteryCell
-from ui import UI
+from gui import GUI
 from random import randint
 from odometer import Odometer
 from bms import BatteryManagementSystem
@@ -16,7 +16,7 @@ class ElectricVehicle():
       self._battery = [BatteryCell()]  * ElectricVehicle.NUMBER_OF_BATTERIES
       self._odometer = Odometer()
       self._bms = BatteryManagementSystem()
-      self._ui = UI()
+      self._gui = GUI()
       self._charging = False      
 
   def switchPowerState(self):
