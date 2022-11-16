@@ -2,11 +2,17 @@ from temperatureSensor import TemperatureSensor
 from voltageSensor import VoltageSensor
 from currentSensor import CurrentSensor
 from battery import BatteryCell
-# from batteryModule import BatteryModule
+from batteryModule import BatteryModule
+from datetime import date, today
+from random import randint
 
 class BatteryManagementSystem:
 
     NUMBER_OF_BATTERIES = 8
+    BATTERY_MANUFACTURE_DATE = date(2021, 1, 1)
+    CHARGE_DISCHARGE_MAXIMUM = 500
+    BATTERY_LIFETIME_ESTIMATE = 4
+    MAX_TEMPERATURE = 60
 
     def __init__(self, odometer):
         # all the calculations in here
@@ -15,7 +21,7 @@ class BatteryManagementSystem:
         # Every element in the battery pack is an object
         # of Battery Module class which represents 4 objects
         # Battery Cell, Temp, Current and Voltage Sensors
-        # self._batteryPack = [BatteryModule() for i in range(BatteryManagementSystem.NUMBER_OF_BATTERIES)] 
+        self._batteryPack = [BatteryModule()] * BatteryManagementSystem.NUMBER_OF_BATTERIES 
 
         self._temperatureThreshold = 0
         self._voltageThreshold = 0
@@ -41,7 +47,12 @@ class BatteryManagementSystem:
 
     def sohAlgorithm(self):
         '''calculate SOH of battery using algo involving internal resistance measurement, counting charge/discharge cycles, SOC'''
-        pass
+        
+        '''SOH is calculated by getting the average of charge/discharge cycles lifetime and battery lifetime, based on estimated lifetimes'''
+
+        chargeDischargeCyclesPercentage = self._chargeDischargeCycles / self.CHARGE_DISCHARGE_MAXIMUM
+        batteryLifetimePercentage = (today()-self.BATTERY_MANUFACTURE_DATE).years / 4
+        return (chargeDischargeCyclesPercentage+batteryLifetimePercentage) * 50
 
     def distanceRemainingAlgorithm(self, mileage, stateOfCharge):
         distanceDriven = mileage - self._initialMileage
@@ -53,8 +64,12 @@ class BatteryManagementSystem:
 
         # from temperatureSensor read Data from all the BatteryCell objects
         # If one is over a temperature limit, start cooling
-        pass
-    
+        
+        temperatures = [batteryModule.TemperatureSensor.readBattery() for batteryModule in self._batteryPack]
+        if min(temperatures) > self.MAX_TEMPERATURE:
+            for batteryModule in self._batteryPack:
+                batteryModule.batteryCell.temperature -= randint(0.05, 0.15)
+            
     def loadBalance(self):
         '''execute load balancing if load is unbalanced'''
 
