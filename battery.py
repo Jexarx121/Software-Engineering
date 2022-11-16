@@ -12,11 +12,13 @@ class BatteryCell:
         if BatteryCell.id >= 8:
             return "All the battery cells have been made."
 
-        self.id = BatteryCell.id
+        self._id = BatteryCell.id
         self._voltage = 0
         self._current = 0
         self._temperature = 0
         self._state = False
+
+        self._oldPower = 0
 
         # static variable incremented each instantiation 
         # Battery cell amount variable - curerntly 8
@@ -25,7 +27,6 @@ class BatteryCell:
         # Stored in some data structure 
         # Each cell has quite a few batteries
         
-
     def generateVoltageData(self, power):
         '''generate random voltage values for the battery cells'''
 
@@ -35,26 +36,31 @@ class BatteryCell:
         # Voltage - 200V - 500V - threshold needs be derived from power
         # All parameters divided by number of cells
         maxVoltage = 500 / BatteryCell.id
-        voltageGenerated = maxVoltage * power
+        oldVoltage = self._voltage
 
-        self._voltage = randint(voltageGenerated, maxVoltage)
-        self._voltage += self.plusMinus(power)
+        self._voltage
 
         return self._voltage
 
+    # Try and base the current value based on power and voltage
+    # Current = Power / Voltage
     def generateCurrentData(self, power):
         ''' Generates a random current value for the battery cells'''
 
         # Current - 100A - 250A - derive current from both power parameter and voltage
+        if power <= 0 or power >= 1:
+            return 'There is a fault with the amount of power required for the vehicle.'
+
         maxCurrent = 250 / BatteryCell.id
         currentGenerated = maxCurrent * power
-        self._current = randint(currentGenerated, maxCurrent)
-        self._current += self.plusMinus(power)
 
+        currentGenerated += self.plusMinus(power)
+
+        self._voltage = currentGenerated
         return self._current
 
 
-    def generateTemperatureData(self, power):
+    def generateTemperatureData(self, power, oldTemperatureData):
         '''Generates a random temperature value for the battery cells'''
 
 
@@ -91,6 +97,16 @@ class BatteryCell:
 
         return randomValue
 
+    def checkDataRange(self, generatedValue, oldValue):
+        threshold = 20
+        minRange = generatedValue + threshold
+        maxRange = generatedValue - threshold
+
+        if oldValue in range(minRange, maxRange):
+            return True
+        
+        return False
+
     def getState(self):
         return self._state
 
@@ -115,6 +131,11 @@ class BatteryCell:
     def setTemperature(self, temperature):
         self._temperature = temperature
 
+    def getId(self):
+        return self._id
+
+
+    id = property(getId)
     state = property(getState, setState)
     current = property(getCurrent, setCurrent)
     voltage = property(getVoltage, setVoltage)
