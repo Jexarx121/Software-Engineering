@@ -8,8 +8,8 @@ class BatteryManagementSystem:
 
     NUMBER_OF_BATTERIES = 8
 
-    def __init__(self):
-        # all the calculaions in here
+    def __init__(self, odometer):
+        # all the calculations in here
 
         # All battery cells made here
         # Every element in the battery pack is an object
@@ -17,19 +17,16 @@ class BatteryManagementSystem:
         # Battery Cell, Temp, Current and Voltage Sensors
         self._batteryPack = [BatteryModule() for i in range(BatteryManagementSystem.NUMBER_OF_BATTERIES)] 
 
-        self.temperatureSensor = TemperatureSensor()
-        self.currentSensor = CurrentSensor()
-        self.voltageSensor = VoltageSensor()
-
         self._temperatureThreshold = 0
         self._voltageThreshold = 0
         self._currentThreshold = 0
 
         self._stateOfCharge = 0
         self._stateOfHealth = 0
+        self._distanceRemaining = 0
 
-        # self.odometer = Odometer()
-        # self.charger = Charger()
+        self._initialStateOfCharge = self.socAlgorithm()
+        self._initialMileage = odometer.mileage
 
     def processData(self):
         '''From battery pack, read each sensor data and check for errors
@@ -46,6 +43,10 @@ class BatteryManagementSystem:
         '''calculate SOH of battery using algo involving internal resistance measurement, counting charge/discharge cycles, SOC'''
         pass
 
+    def distanceRemainingAlgorithm(self, mileage, stateOfCharge):
+        distanceDriven = mileage - self._initialMileage
+        stateOfChargeUsed = stateOfCharge - self._initialStateOfCharge
+        return (distanceDriven/stateOfChargeUsed) * stateOfCharge
 
     def cooling(self):
         '''cool the battery(reduce temperature) if temperature is over limit'''

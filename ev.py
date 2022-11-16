@@ -9,7 +9,6 @@ import multiprocessing
 class ElectricVehicle():
     """represents an electrical vehicle"""
 
-    NUMBER_OF_BATTERIES = 8
 
     def __init__(self):
         self._powerState = False
