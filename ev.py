@@ -4,7 +4,7 @@ from random import randint
 from odometer import Odometer
 from bms import BatteryManagementSystem
 from time import sleep
-import multiprocessing
+from multiprocessing import *
 
 class ElectricVehicle():
     """represents an electrical vehicle"""
@@ -15,7 +15,7 @@ class ElectricVehicle():
         self._lowPowerMode = False
         self._powerLimit = 0
         self._power = 0
-        self._odometer = Odometer()
+        # self._odometer = Odometer()
         self._bms = BatteryManagementSystem()
         self._ui = UI()
         self._process = []
@@ -134,3 +134,9 @@ class ElectricVehicle():
 
     def display(self):
         '''Display what the BMS wants us to display onto the UI'''
+
+if __name__ == "__main__":
+    ev = ElectricVehicle()
+    print(ev._bms.stateOfCharge)
+    ev._ui.progressBar(ev._bms.stateOfCharge)
+    

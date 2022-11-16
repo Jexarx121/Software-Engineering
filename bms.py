@@ -2,7 +2,7 @@ from temperatureSensor import TemperatureSensor
 from voltageSensor import VoltageSensor
 from currentSensor import CurrentSensor
 from battery import BatteryCell
-from batteryModule import BatteryModule
+# from batteryModule import BatteryModule
 
 class BatteryManagementSystem:
 
@@ -15,13 +15,13 @@ class BatteryManagementSystem:
         # Every element in the battery pack is an object
         # of Battery Module class which represents 4 objects
         # Battery Cell, Temp, Current and Voltage Sensors
-        self._batteryPack = [BatteryModule() for i in range(BatteryManagementSystem.NUMBER_OF_BATTERIES)] 
+        # self._batteryPack = [BatteryModule() for i in range(BatteryManagementSystem.NUMBER_OF_BATTERIES)] 
 
         self._temperatureThreshold = 0
         self._voltageThreshold = 0
         self._currentThreshold = 0
 
-        self._stateOfCharge = 0
+        self._stateOfCharge = 50
         self._stateOfHealth = 0
         self._distanceRemaining = 0
 
