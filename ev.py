@@ -1,5 +1,6 @@
 from battery import BatteryCell
 from ui import UI
+from tkinter import *
 from random import randint
 from odometer import Odometer
 from bms import BatteryManagementSystem
@@ -124,7 +125,7 @@ class ElectricVehicle():
                 # Trickling to prevent overcharge
                 self._bms.stateOfCharge -= 1
                 self.display("Warning, Battery is full.")
-            
+
             self._bms.stateOfCharge += 1
             self.display(self.bms.stateOfCharge)
         
@@ -138,6 +139,7 @@ class ElectricVehicle():
 
 if __name__ == "__main__":
     ev = ElectricVehicle()
-    print(ev._bms.stateOfCharge)
     ev._ui.progressBar(ev._bms.stateOfCharge)
+
+
     

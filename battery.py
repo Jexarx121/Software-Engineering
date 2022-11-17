@@ -30,17 +30,19 @@ class BatteryCell:
     def generateVoltageData(self, power):
         '''generate random voltage values for the battery cells'''
 
+        # gets fed from bms change in power
+        # sensor will then read it calling respective getter method
+        # if no power change - generate same amount of power with fluctuations from plusMinus method
+
         if power <= 0 or power >= 1:
             return 'There is a fault with the amount of power required for the vehicle.'
 
-        # Voltage - 200V - 500V - threshold needs be derived from power
+        # Voltage - 200V - 400V - threshold needs be derived from power
         # All parameters divided by number of cells
         maxVoltage = 500 / BatteryCell.id
         oldVoltage = self._voltage
 
-        self._voltage
-
-        return self._voltage
+        self._voltage = 0
 
     # Try and base the current value based on power and voltage
     # Current = Power / Voltage
@@ -60,7 +62,7 @@ class BatteryCell:
         return self._current
 
 
-    def generateTemperatureData(self, power, oldTemperatureData):
+    def generateTemperatureData(self, power):
         '''Generates a random temperature value for the battery cells'''
 
 
