@@ -5,7 +5,7 @@ from random import randint
 from time import time
 
 
-class BatteryManagementSystem:
+class BatteryManagementSystem():
 
 	NUMBER_OF_BATTERIES = 8
 	BATTERY_MANUFACTURE_DATE = date(2021, 1, 1)
