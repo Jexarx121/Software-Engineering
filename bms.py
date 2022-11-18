@@ -9,10 +9,10 @@ from random import randint
 class BatteryManagementSystem:
 
 	NUMBER_OF_BATTERIES = 8
-    BATTERY_MANUFACTURE_DATE = date(2021, 1, 1)
-    CHARGE_DISCHARGE_MAXIMUM = 500
-    BATTERY_LIFETIME_ESTIMATE = 4
-    MAX_TEMPERATURE = 60
+	BATTERY_MANUFACTURE_DATE = date(2021, 1, 1)
+	CHARGE_DISCHARGE_MAXIMUM = 500
+	BATTERY_LIFETIME_ESTIMATE = 4
+	MAX_TEMPERATURE = 60
 
 	def __init__(self):
 		# all the calculaions in here
@@ -22,7 +22,10 @@ class BatteryManagementSystem:
 		# of Battery Module class which represents 4 objects
 		# Battery Cell, Temp, Current and Voltage Sensors
 
-		self._batteryPack = [BatteryModule() for i in range(BatteryManagementSystem.NUMBER_OF_BATTERIES)] 
+		self._max_voltage = 500
+		self._max_current = 250
+
+		self._batteryPack = [BatteryModule(self._max_voltage / BatteryManagementSystem.NUMBER_OF_BATTERIES, self._max_current / BatteryManagementSystem.NUMBER_OF_BATTERIES) for i in range(BatteryManagementSystem.NUMBER_OF_BATTERIES)] 
 
 		self.temperatureSensor = TemperatureSensor()
 		self.currentSensor = CurrentSensor()
@@ -41,14 +44,14 @@ class BatteryManagementSystem:
 		# self.charger = Charger()
 		
 	def startProcess(self):
-	  	start = time()
+		start = time()
 		
 		self.demandPower()
 
 		totalValues = self.getData()
 		totalCurrent = totalValues[0]
 		totalVoltage = totalValues[1]
-		
+
 		end = time()
 		difference = end - start
 				
@@ -90,27 +93,27 @@ class BatteryManagementSystem:
 	def processData(self, temperatureList, voltageList, currentList):
 		'''From battery pack, read each sensor list and check for errors.
 		If errors exist, run their respective function.'''
-		
+
 		totalVoltage = 0
 		totalCurrent = 0
 		averageTemperature = 0
-		
+
 		for value in range(NUMBER_OF_BATTERIES):
-		  	
+			
 			if temperatureList[value] >= self._temperatureThreshold:
-			  	# cooling will change the current value in List
+				# cooling will change the current value in List
 				# cooling will display a warning during the process
 				# increasing the power needed 
-			  	self.cooling(self._batteryPack[temperature])
-				
+				self.cooling(self._batteryPack[temperature])
+
 			if voltageList[value] >= self._voltageThreshold:
-			  	self.loadBalance()
+				self.loadBalance()
 			totalVoltage += voltage
 			
 			if currrentList[value] >= self._currentThreshold:
-			  	totalCurrent += current
+				totalCurrent += current
 				
-		
+
 		return totalCurrent, totalVoltage
 		# some display shennanigans as well
 
@@ -145,27 +148,27 @@ class BatteryManagementSystem:
 
 	def sohAlgorithm(self):
 		'''calculate SOH of battery using algo involving internal resistance measurement, counting charge/discharge cycles, SOC'''
-        
+
 		'''SOH is calculated by getting the average of charge/discharge cycles lifetime and battery lifetime, based on estimated lifetimes'''
 
-        chargeDischargeCyclesPercentage = self._chargeDischargeCycles / self.CHARGE_DISCHARGE_MAXIMUM
-        batteryLifetimePercentage = (today()-self.BATTERY_MANUFACTURE_DATE).years / 4
-        return (chargeDischargeCyclesPercentage+batteryLifetimePercentage) * 50
+		chargeDischargeCyclesPercentage = self._chargeDischargeCycles / self.CHARGE_DISCHARGE_MAXIMUM
+		batteryLifetimePercentage = (today()-self.BATTERY_MANUFACTURE_DATE).years / 4
+		return (chargeDischargeCyclesPercentage+batteryLifetimePercentage) * 50
 
-    def distanceRemainingAlgorithm(self, mileage, stateOfCharge):
-        distanceDriven = mileage - self._initialMileage
-        stateOfChargeUsed = stateOfCharge - self._initialStateOfCharge
-        return (distanceDriven/stateOfChargeUsed) * stateOfCharge
+		def distanceRemainingAlgorithm(self, mileage, stateOfCharge):
+			distanceDriven = mileage - self._initialMileage
+			stateOfChargeUsed = stateOfCharge - self._initialStateOfCharge
+			return (distanceDriven/stateOfChargeUsed) * stateOfCharge
 
-	def cooling(self):
-		'''cool the battery(reduce temperature) if temperature is over limit'''
+		def cooling(self):
+			'''cool the battery(reduce temperature) if temperature is over limit'''
 
 		# from temperatureSensor read Data from all the BatteryCell objects
 		# If one is over a temperature limit, start cooling
 		pass
-	
-	def loadBalance(self):
-		'''execute load balancing if load is unbalanced'''
+
+		def loadBalance(self):
+			'''execute load balancing if load is unbalanced'''
 
 		# If we're doing voltage based balancing (easiest one imo)
 		# set a difference threshold between voltages (usually difference of 0.1 to 1)
@@ -177,19 +180,19 @@ class BatteryManagementSystem:
 		# BMS needs to detect that and prohibit load balancing with these type of cells
 		pass
 
-	def stateOfChargeWarning(self):
+		def stateOfChargeWarning(self):
 		# warn the user if SOC is below a threshold to start charging
 		# Or if the charging is done that the charging has ceased
 		# display on gui from EV method
-		
-		if self._stateOfCharge < 10:
-			return "Battery Percent is lower than 10%. Please go to the nearest station to charge."
-		elif self._stateOfCharge < 25:
-			return "Battery Percent is at 25%. Please consider charging soon."
-		elif self._stateOfCharge >= 80:
-			return "Battery Percent is near full. Charging will be complete soon."
-		elif self._stateOfCharge == 100:
-			return "Battery Percent is now 100%. Please disconnect the charger to conserve battery health."
+
+			if self._stateOfCharge < 10:
+				return "Battery Percent is lower than 10%. Please go to the nearest station to charge."
+			elif self._stateOfCharge < 25:
+				return "Battery Percent is at 25%. Please consider charging soon."
+			elif self._stateOfCharge >= 80:
+				return "Battery Percent is near full. Charging will be complete soon."
+			elif self._stateOfCharge == 100:
+				return "Battery Percent is now 100%. Please disconnect the charger to conserve battery health."
 
 	def stateOfHealthWarning(self):
 		# warn the user if the SOH is below a threshold

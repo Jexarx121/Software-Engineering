@@ -1,10 +1,6 @@
 from battery import BatteryCell
-<<<<<<< HEAD
 from ui import UI
 from tkinter import *
-=======
-from gui import GUI
->>>>>>> 739710a707871469ef13b0e173c03a70b5539b23
 from random import randint
 from odometer import Odometer
 from bms import BatteryManagementSystem
