@@ -121,9 +121,6 @@ class ElectricVehicle():
             self.display(self._bms.stateOfCharge)
         
 
-    def power(self):
-        '''Not sure what this method is for?'''
-        pass
 
     def display(self, number):
         '''Display what the BMS wants us to display onto the UI'''

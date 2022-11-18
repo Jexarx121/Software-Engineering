@@ -5,11 +5,12 @@ class CurrentSensor(Sensor):
   """represents a current sensor"""
 
   def __init__(self):
-    super().__init__()
+     self._currentValue = 0
 
   def readBattery(self, battery):
-      return super().readBattery(battery)
+      self._currentValue = battery.getCurrent()
 
-if __name__ == "__main__":
-    pass
-        
+  def getCurrentValue(self):
+    return self._currentValue
+
+  currentValue = property(getCurrentValue)

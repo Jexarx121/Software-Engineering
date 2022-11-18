@@ -1,113 +1,84 @@
 from random import randint
 
 class BatteryCell:
-    """represents a battery cell"""
-    # cells produce voltage , current, temperature which the sensors will read.
+    """Represents a battery cell which consists of multiple individual batteries.\n
+    Cells keep track of their own voltage , current, temperature which the sensors will read.
+    This is not how sensors work in the real world but for the sensors in the simulation to read the data it has to be 'stored' by the cell."""
 
-    # static variable that will give each cell an id
-    id = 0
+    def __init__(self, max_voltage, max_current):
+        
+        self._max_voltage = max_voltage
+        self._max_current = max_current
 
-    def __init__(self):
-
-        if BatteryCell.id >= 8:
-            return "All the battery cells have been made."
-
-        self._id = BatteryCell.id
         self._voltage = 0
         self._current = 0
         self._temperature = 0
         self._state = False
-
-        self._oldPower = 0
-
-        # static variable incremented each instantiation 
-        # Battery cell amount variable - curerntly 8
-        BatteryCell.id += 1
-
-        # Stored in some data structure 
-        # Each cell has quite a few batteries
         
-    def generateVoltageData(self, power):
-        '''generate random voltage values for the battery cells'''
+    def updateVoltageData(self, power, voltage_change):
+        """Calculates the new voltage of the battery based on the given power change."""
 
-        # gets fed from bms change in power
-        # sensor will then read it calling respective getter method
-        # if no power change - generate same amount of power with fluctuations from plusMinus method
+        fluctuation = self.fluctuateData(power, "voltage")
+        power_change += fluctuation
+        self._voltage += voltage_change
 
-        if power <= 0 or power >= 1:
-            return 'There is a fault with the amount of power required for the vehicle.'
+    def generateCurrentData(self, power, current_change):
+        """Calculates the new current of the battery based on the given power change."""
 
-        # Voltage - 200V - 400V - threshold needs be derived from power
-        # All parameters divided by number of cells
-        maxVoltage = 500 / BatteryCell.id
-        oldVoltage = self._voltage
-
-        self._voltage = 0
-
-    # Try and base the current value based on power and voltage
-    # Current = Power / Voltage
-    def generateCurrentData(self, power):
-        ''' Generates a random current value for the battery cells'''
-
-        # Current - 100A - 250A - derive current from both power parameter and voltage
-        if power <= 0 or power >= 1:
-            return 'There is a fault with the amount of power required for the vehicle.'
-
-        maxCurrent = 250 / BatteryCell.id
-        currentGenerated = maxCurrent * power
-
-        currentGenerated += self.plusMinus(power)
-
-        self._voltage = currentGenerated
-        return self._current
-
+        fluctuation = self.fluctuateData(power, "current")
+        power_change += fluctuation
+        self._voltage += current_change
 
     def generateTemperatureData(self, power):
-        '''Generates a random temperature value for the battery cells'''
+        """Generates a random temperature value for the battery cells.\n
+           In terms of simulation, the temperature proved quite difficult and thus a more random data generation for temperature is used here."""
 
-
-        # Temperature - 50 degrees C upper bound - heat derived from both current and voltage 
-        # temperature ranges are consistently same range regardless of car - quicker cooling
         maxTemperature = 50 
         temperatureGenerated = maxTemperature * power
         self._temperature = randint(temperatureGenerated, maxTemperature)
-        self._temperature += self.plusMinus(power)
-
-        return self._temperature
 
 
-    # generates random values added to each parameter to randomise each further
-    # based on power needed for ev, the demand for current, voltage and temperature
-    # goes higher and therefore the random value does too   
-    def plusMinus(self, power):
-        minRange = -5
-        maxRange = 5
-        
-        if power <= 0.25:
-            randomValue = randint(minRange, maxRange)
-        elif power <= 0.5:
-            maxRange = 10
-            randomValue = randint(minRange, maxRange)
-        elif power <= 0.75:
-            maxRange  = 15
-            minRange = -2
-            randomValue = randint(minRange, maxRange)
+
+    def fluctuateData(self, power, data_type):
+        """Generates a fluctuation in data based on the data type of the battery data being changed. This fluctuation is also based on the current power of the EV."""
+        if data_type == "voltage":
+            minRange = -3
+            maxRange = 3
+            
+            if power >= 0.26 and power <= 0.5:
+                maxRange = 5
+            elif power <= 0.75:
+                maxRange  = 8
+                minRange = -2
+            else:
+                maxRange = 10
+                minRange = -1
         else:
-            maxRange = 20
-            minRange = 0
-            randomValue = randint(minRange, maxRange)
+            minRange = -5
+            maxRange = 5
+            
+            if 0.26 >= power and power <= 0.5:
+                maxRange = 8
+            elif power <= 0.75:
+                maxRange  = 12
+                minRange = -2
+            else:
+                maxRange = 15
+                minRange = 0
+                
+            
+        fluctuationValue = randint(minRange, maxRange)
 
-        return randomValue
+        return fluctuationValue
 
-    def checkDataRange(self, generatedValue, oldValue):
-        threshold = 20
-        minRange = generatedValue + threshold
-        maxRange = generatedValue - threshold
+    def getVoltage(self):
+        return self._voltage
+    
+    def getCurrent(self):
+        return self._current
 
-        if oldValue in range(minRange, maxRange):
-            return True
-        
-        return False
+    def getTemperature(self):
+        return self._temperature
 
     def getState(self):
         return self._state
@@ -115,38 +86,12 @@ class BatteryCell:
     def setState(self, state):
         self._state = state
 
-    def getVoltage(self):
-        return self._voltage
-
-    def setVoltage(self, voltage):
-        self._voltage = voltage
-    
-    def getCurrent(self):
-        return self._current
-
-    def setCurrent(self, current):
-        self._current = current
-
-    def getTemperature(self):
-        return self._temperature
-
-    def setTemperature(self, temperature):
-        self._temperature = temperature
-
-    def getId(self):
-        return self._id
-
-
-    id = property(getId)
+    voltage = property(getVoltage)
+    current = property(getCurrent)
+    temperature = property(getTemperature)
     state = property(getState, setState)
-    current = property(getCurrent, setCurrent)
-    voltage = property(getVoltage, setVoltage)
-    temperature = property(getTemperature, setTemperature)
 
  
 if __name__ == "__main__":
     battery1 = BatteryCell()
     battery2 = BatteryCell()
-
-    print(battery1.id)
-    print(battery2.id)

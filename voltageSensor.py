@@ -5,11 +5,12 @@ class VoltageSensor(Sensor):
     """repressents a voltage sensor"""
 
     def __init__(self):
-        super().__init__()
+        self._voltageValue = 0
 
     def readBattery(self, battery):
-        return super().readBattery(battery)
+        self._voltageValue = battery.getVoltage()
 
+    def getVoltageValue(self):
+        return self._voltageValue
 
-if __name__ == "__main__":
-    pass
+    voltageValue = property(getVoltageValue)

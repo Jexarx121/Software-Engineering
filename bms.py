@@ -65,12 +65,12 @@ class BatteryManagementSystem:
   
 		#display some values to UI
 
-	# KEVIN!!!!
+	# KWECADUCK THE MAGNUS!!!!
 	def demandPower(self):
 		'''Generates data from the battery based on the change in power.
 		Afterwards then calls the getData method.'''
 		pass
-	# KEVIN!!!!
+	# KWECADUCK THE MAGNUS!!!!
 
 	def getData(self):
 		'''Causes the sensors to get the data produced
@@ -171,9 +171,6 @@ class BatteryManagementSystem:
 		# drainig the voltage away or sharing it with other cells
 		# Sharing it out could lead to over voltage
 
-		indexOfMax = voltageList.indexOf(max(voltageList))
-
-
 		# Need to account for faulty cells too
 		# BMS needs to detect that and prohibit load balancing with these type of cells
 		pass
@@ -203,6 +200,10 @@ class BatteryManagementSystem:
 			return "Battery health has deteriorated."
 
 		return ""
+
+	
+	def display(self):
+		pass
 	
 	def getStateOfCharge(self):
 		return self._stateOfCharge
