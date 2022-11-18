@@ -1,19 +1,13 @@
 from battery import BatteryCell
-<<<<<<< HEAD
 from ui import UI
-from tkinter import *
-=======
-from gui import GUI
->>>>>>> 739710a707871469ef13b0e173c03a70b5539b23
 from random import randint
 from odometer import Odometer
 from bms import BatteryManagementSystem
 from time import sleep
-from multiprocessing import *
+from multiprocessing import Process
 
 class ElectricVehicle():
     """represents an electrical vehicle"""
-
 
     def __init__(self):
         self._powerState = False
@@ -22,7 +16,7 @@ class ElectricVehicle():
         self._power = 0
         # self._odometer = Odometer()
         self._bms = BatteryManagementSystem()
-        self._ui = UI()
+        self._ui = UI(self._bms)
         self._process = []
         self._charging = False      
 
@@ -42,28 +36,22 @@ class ElectricVehicle():
 
         self._lowPowerMode = False
         # Kill ui when off (make screen black)
-        self._ui.exit()
         self._power = 0
         
         
     def powerStateOn(self):
         self._power = 20
-        self._ui.start()
         
         
     def switchPowerMode(self):
         '''Switch either into or out of low power mode'''
         self._lowPowerMode = not self._lowPowerMode
         
-        # if normal mode turn into low power mode
-        #if in low power mode switch to normal mode?
-        
         if self._lowPowerMode:
             self._powerLimit = 60
         else:
             self._powerLimit = 0
-        
-        # if were above 60 when driver presses low power mode.
+
         
     def limitPower(self):
         while self._power > self._powerLimit:
@@ -93,7 +81,7 @@ class ElectricVehicle():
             self._power += randint(0, 5)
         else:
             self._power += randint(-2, 2)
-        if self._power > 80 and self.lowPowerMode:
+        if self._power > 80 and self._lowPowerMode:
             self._power = 80
 
         for batteryCell in self._battery:
@@ -130,19 +118,20 @@ class ElectricVehicle():
                 self.display("Warning, Battery is full.")
 
             self._bms.stateOfCharge += 1
-            self.display(self.bms.stateOfCharge)
+            self.display(self._bms.stateOfCharge)
         
 
     def power(self):
         '''Not sure what this method is for?'''
         pass
 
-    def display(self):
+    def display(self, number):
         '''Display what the BMS wants us to display onto the UI'''
+
 
 if __name__ == "__main__":
     ev = ElectricVehicle()
-    ev._ui.progressBar(ev._bms.stateOfCharge)
+    ev.switchPowerMode()
 
 
     
