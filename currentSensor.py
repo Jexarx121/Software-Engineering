@@ -1,8 +1,7 @@
 from sensor import Sensor
-from battery import BatteryCell
 
 class CurrentSensor(Sensor):
-  """represents a current sensor"""
+  """Represents a current sensor for reading a battery cell's current."""
 
   def __init__(self):
      self._currentValue = 0

@@ -1,8 +1,7 @@
 from sensor import Sensor
-from battery import BatteryCell
 
 class VoltageSensor(Sensor):
-    """repressents a voltage sensor"""
+    """Repressents a voltage sensor for reading a battery cell's voltage."""
 
     def __init__(self):
         self._voltageValue = 0

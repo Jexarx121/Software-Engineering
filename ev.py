@@ -1,24 +1,24 @@
 from battery import BatteryCell
 from ui import UI
 from random import randint
-from odometer import Odometer
 from bms import BatteryManagementSystem
 from time import sleep
 from multiprocessing import Process
+from threading import Thread
 
 class ElectricVehicle():
-    """represents an electrical vehicle"""
+    """Represents an electrical vehicle."""
 
     def __init__(self):
         self._powerState = False
         self._lowPowerMode = False
         self._powerLimit = 0
         self._power = 0
-        # self._odometer = Odometer()
         self._bms = BatteryManagementSystem()
-        self._ui = UI(self._bms)
         self._process = []
         self._charging = False      
+
+        self._ui = UI(self._bms)
 
     def switchPowerState(self):
         '''Switch power state of vehicle - on or off'''
@@ -35,20 +35,22 @@ class ElectricVehicle():
             process.terminate()
 
         self._lowPowerMode = False
-        # Kill ui when off (make screen black)
         self._power = 0
         
         
     def powerStateOn(self):
+        #remove UI from init and initialise it here when turning on the power
         self._power = 20
         
         
     def switchPowerMode(self):
         '''Switch either into or out of low power mode'''
+        sleep(5)
         self._lowPowerMode = not self._lowPowerMode
         
         if self._lowPowerMode:
             self._powerLimit = 60
+            self._ui.lowPowerModeLabel.config(text="Low Power Mode is enabled.")
         else:
             self._powerLimit = 0
 
@@ -60,49 +62,35 @@ class ElectricVehicle():
         
         
     def run(self):
-        '''Called every 'frame' (like update in c++).
-        Will generate draw value and gather data from battery and odometer
-        based on this. Processes this data and runs bms algos to calculate soc,
-        soh and driving range. Should do some error/warning checks too.
-        Then displays all in UI
-        '''
-        if self._charging:
-        
-            self._process = []
+        '''Simulation of a trip with an electric vehicle. \n
+        BMS will constantly run its operations while the vehicle simulates different through different scenarios.\n
+        UI will show these changes during the trip. '''
+        with open("simulation.txt", "r") as f:
+            simulation = []
+            
+        # with tkinter, use after() to trigger processLoop to run it with tkintet
+        for power in simulation:
+
+            # -1 values represent charging in the trip
+            if power == -1:
+                self.charge()
+
+            self._bms.startProcess(power)
+
+        if self._charging: 
             chargingProcess = Process(target=self.charge()) #sends to charge method
             self._process.append(chargingProcess)
             chargingProcess.start()
         
-        if self._lowPowerMode:
-            self.limitPower()
         
-
-        if self._power == 0: # if car idling
-            self._power += randint(0, 5)
-        else:
-            self._power += randint(-2, 2)
-        if self._power > 80 and self._lowPowerMode:
-            self._power = 80
-
-        for batteryCell in self._battery:
-            batteryCell.generateData(self._power)
-
-        mileage = self._odometer.mileage
-
-        # check power mode from ui
-        self._ui._lowPowerMode = self._lowPowerMode
-
-        self._bms.loadBalance(self._battery)
-        self._stateOfCharge = self._bms.getStateOfCharge(self._battery)
-        self._stateOfHealth = self._bms.getStateOfHealth(self._battery)
-        self._drivingRange = self._bms.getDrivingRange()
-        self._bms.cooling(self._battery)
-
-        self.display(self._bms.stateOfCharge, self._bms.stateOfHealth, self._bms.drivingRange, self._bms.warnings)
 
     def charge(self):
-        '''Change charging state'''
-        
+        '''Initiate charging. It is a blackbox algorithm in this case where the state of charge increments after a certain period.\n
+        Changes charging state and increments the charge/discharge cycles.\n
+        State of charge starts to trickle when reaching 100% to avoid overcharging.\n
+        Charging only stops when driver disconnects plug.'''
+        self._bms.chargeDischargeCycles += 1
+
         # Process so function is interruptable from outside
         if self._powerState == False:
             self.powerStateOn()
@@ -112,14 +100,18 @@ class ElectricVehicle():
         while self._charging == True:
         
             sleep(10)
-            if charge == threshold:
+            if charge == self._bms._chargeThreshold:
                 # Trickling to prevent overcharge
                 self._bms.stateOfCharge -= 1
-                self.display("Warning, Battery is full.")
 
             self._bms.stateOfCharge += 1
-            self.display(self._bms.stateOfCharge)
-        
+
+    
+    def disconnectCharger(self):
+        """Simulate driver disconnecting charger."""
+        if self._charging:
+            self._charging = False
+
 
 
     def display(self, number):
@@ -128,7 +120,7 @@ class ElectricVehicle():
 
 if __name__ == "__main__":
     ev = ElectricVehicle()
-    ev.switchPowerMode()
+
 
 
     

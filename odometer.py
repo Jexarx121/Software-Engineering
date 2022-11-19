@@ -4,9 +4,11 @@ class Odometer:
     def __init__(self):
         self._mileage = randint(0, 150000)
         
-    def get_mileage(self):
-        self._mileage += randint(0, 5)
+    def getMileage(self):
         return self._mileage
+    
+    def setMileage(self, mileage):
+        self._mileage += mileage
 
-    mileage = property(get_mileage)
+    mileage = property(getMileage, setMileage)
 

@@ -6,6 +6,7 @@ from time import time
 
 
 class BatteryManagementSystem():
+	'''Represents a battery management system for an electric vehicle.'''
 
 	NUMBER_OF_BATTERIES = 8
 	BATTERY_MANUFACTURE_DATE = date(2021, 1, 1)
@@ -34,10 +35,10 @@ class BatteryManagementSystem():
 
 		self._voltageDifference = 0
 
-		self._stateOfCharge = 80
-		self._distanceDriven = BatteryManagementSystem.MAXIMUM_DISTANCE * (1 - (self._stateOfCharge/100))
+		self._stateOfCharge = 20
+		self._distanceDriven = self.distanceDriven()
 
-		self._stateOfHealth = 100
+		self._stateOfHealth = 80
 		self._maxCapacity = (self._stateOfHealth / 100) * BatteryManagementSystem.BATTERY_PACK_CAPACITY
 
 		self._initialStateOfCharge = self._stateOfCharge
@@ -46,6 +47,7 @@ class BatteryManagementSystem():
 		self._chargeDischargeCycles = 0
 		self._distanceRemaining = 0
 
+		self._chargeThreshold = 100
 
 	def startProcess(self, power):
 		
@@ -64,6 +66,7 @@ class BatteryManagementSystem():
 		self.distanceRemainingAlgorithm(self.odometer.mileage)
   
 		#display some values to UI
+
 
 	# KWECADUCK THE MAGNUS!!!!
 	def demandPower(self):
@@ -113,6 +116,12 @@ class BatteryManagementSystem():
 
 		return totalCurrent
 
+	
+	def distanceDriven(self):
+		'''Get the distance driven on current charge from the max distance.'''
+		distanceDriven = BatteryManagementSystem.MAXIMUM_DISTANCE * (1 - (self._stateOfCharge/100))
+		return distanceDriven
+		
 
 	def socAlgorithm(self, totalCurrent, timeTaken):
 		'''Calculate SOC of battery using Coulomb counting.
@@ -123,25 +132,25 @@ class BatteryManagementSystem():
 		amountOfCoulombs = totalCurrent * timeTaken
 		self._stateOfCharge -= amountOfCoulombs  
 
-		# Only reason for SOC being a percentage is for the display
-		# Hence WE DO NOT NEED IT HERE
+		self._distanceDriven = self.distanceDriven()
 
 
 	def sohAlgorithm(self):
-		'''SOH is calculated by getting the average of charge/discharge cycles lifetime and battery lifetime, based on estimated lifetimes'''
+		'''SOH is calculated by getting the average of charge/discharge cycles lifetime and battery lifetime, based on estimated lifetimes.'''
 
 		chargeDischargeCyclesPercentage = self._chargeDischargeCycles / BatteryManagementSystem.CHARGE_DISCHARGE_MAXIMUM
 		batteryLifetimePercentage = ((date.today()-self.BATTERY_MANUFACTURE_DATE)).days / BatteryManagementSystem.BATTERY_LIFETIME_ESTIMATE
 
-		# Only reason for SOH being a percentage is for the display
-		# Hence WE DO NOT NEED IT HERE
 		self._stateOfHealth = ((chargeDischargeCyclesPercentage+batteryLifetimePercentage) / 2) 
 		self._maxCapacity = (self._stateOfHealth / 100) * BatteryManagementSystem.BATTERY_PACK_CAPACITY
 
 
 	def distanceRemainingAlgorithm(self, mileage):
 		'''Calculate the amount of SOC used and the distance driven.
-		Based off that, calculate the distance remaining.'''
+		Based off that, calculate the distance remaining.\n
+		Add the distance driven to the odometer too.'''
+
+		self.odometer.mileage += self._distanceDriven
 
 		stateOfChargeUsed = self._initialStateOfCharge - self._stateOfCharge
 		self._distanceRemaining = (self._distanceDriven/stateOfChargeUsed) * self._stateOfCharge
@@ -152,10 +161,12 @@ class BatteryManagementSystem():
 		For battery cells that are lower than the temperature threshold, it cools them slightly less.'''
 		
 		while True:
-			for temperature in range(temperatureList):
+			for temperature in range(len(temperatureList)):
 				if temperatureList[temperature] >= self._temperatureThreshold:
+					self._batteryPack[temperature].batteryCell.temperature -= 1
 					temperatureList[temperature] -= 1
 				else:
+					self._batteryPack[temperature].batteryCell.temperature -= 0.5
 					temperatureList[temperature] -= 0.5
 
 			if max(temperatureList) < self._temperatureThreshold:
@@ -179,11 +190,9 @@ class BatteryManagementSystem():
 		'''Warnings that display to the UI based on the current SOC.'''
 
 		if self._stateOfCharge < 10:
-			return "Battery Percent is lower than 10%. Please go to the nearest station to charge."
+			return "Please go to the nearest station to charge. Battery Percentage is very low."
 		elif self._stateOfCharge < 25:
-			return "Battery Percent is at 25%. Please consider charging soon."
-		elif self._stateOfCharge >= 80:
-			return "Battery Percent is near full."
+			return "Please consider charging soon. Battery percentage is low."
 		elif self._stateOfCharge == 100:
 			return "Battery Percent is now 100%."
 		
@@ -237,10 +246,16 @@ class BatteryManagementSystem():
 
 	def setCurrentThreshold(self, currentThreshold):
 		self._currentThreshold = currentThreshold
+
+	def getChargeDischargeCycles(self):
+		return self._chargeDischargeCycles
+
 	
 	temperatureThreshold = property(getTemperatureThreshold, setTemperatureThreshold)
 	voltageDifference = property(getVoltageDifference, setVoltageDifference)
 	currentThreshold = property(getCurrentThreshold, setCurrentThreshold)
+	distanceRemaining = property(getDistanceRemaining)
+	chargeDischargeCycles = property(getChargeDischargeCycles)
 	stateOfCharge = property(getStateOfCharge, setStateOfCharge)
 	stateOfHealth = property(getStateOfHealth, setStateOfHealth)
 

@@ -1,8 +1,8 @@
 from sensor import Sensor
-from battery import BatteryCell
 
 class TemperatureSensor(Sensor):
-  """represents a temperature sensor"""
+  """Represents a temperature sensor for reading battery cell's temperature."""
+
   def __init__(self):
      self._temperatureValue = 0
 
