@@ -78,13 +78,15 @@ class BatteryManagementSystem():
 			cell.updateCurrentData(self._power, current_per_cell)
 			cell.generateTemperatureData()
      
+
 	def power_off(self):
-		for cell in self._batterPack:
+		for cell in self._batteryPack:
 			cell.state = False
 			cell.updateVoltageData(0, 0)
 			cell.updateCurrentData(0, 0)
 			cell.generateTemperatureData()
         
+
 	def demandPower(self, new_power):
 		'''Increments data in the battery based on the power.'''
 		required_voltage = new_power * BatteryManagementSystem.MAX_VOLTAGE
@@ -103,9 +105,9 @@ class BatteryManagementSystem():
 				battery_to_increase_voltage = choice(self._batteryPack)
 				battery_to_increase_current = choice(self._batteryPack)
 				while battery_to_increase_voltage.voltage >= (BatteryManagementSystem.MAX_VOLTAGE / len(self._batteryPack)):
-						battery_to_increase_voltage = choice(self._batteryPack)
+					battery_to_increase_voltage = choice(self._batteryPack)
 				while battery_to_increase_current.current >= (BatteryManagementSystem.MAX_CURRENT / len(self._batteryPack)):
-						battery_to_increase_current = choice(self._batteryPack)
+					battery_to_increase_current = choice(self._batteryPack)
 				power_change = new_power - self._power
 				voltage_change = power_change * BatteryManagementSystem.MAX_VOLTAGE
 				current_change = power_change * BatteryManagementSystem.MAX_CURRENT
@@ -166,13 +168,17 @@ class BatteryManagementSystem():
 		If errors exist, run their respective function.'''
 
 		totalCurrent = 0
+		self.printLists(temperatureList, voltageList, currentList)
 
 		if max(temperatureList) > BatteryManagementSystem.MAX_TEMPERATURE:
 			# increasing the power needed
 			self.cooling(temperatureList)
+			self.printAfterCooling(temperatureList)
+			
 
 		if max(voltageList) - min(voltageList) > BatteryManagementSystem.VOLTAGE_DIFF or max(voltageList) > (BatteryManagementSystem.MAX_VOLTAGE / len(self._batteryPack)):
 			self.loadBalance(voltageList)
+			self.printAfterLoadBalancing(voltageList)
 
 		totalCurrent = sum(currentList)
 
@@ -242,7 +248,7 @@ class BatteryManagementSystem():
 		
 		for battery_index in range(len(self._batteryPack)):
 			voltage_change = voltage_per_cell - voltageList[battery_index]
-			self._batteryPack[battery_index].updateVoltageData(self._power, voltage_change)
+			self._batteryPack[battery_index].batteryCell.updateVoltageData(self._power, voltage_change)
 
 	def stateOfChargeWarning(self):
 		'''Warnings that display to the UI based on the current SOC.'''
@@ -267,6 +273,26 @@ class BatteryManagementSystem():
 			return "Battery health has deteriorated."
 
 		return ""
+
+	def printLists(self, temperatureList, voltageList, currentList):
+		print("----------------------------------------")
+		print("Sensor Values for temperature, voltage and current")
+		print(f"Temperature List: {temperatureList}")
+		print(f"Voltage List: {voltageList}")
+		print(f"Current List: {currentList}")
+		print("----------------------------------------")
+
+	def printAfterCooling(self, temperatureList):
+		print("----------------------------------------")
+		print("Sensor values for temperature after cooling")
+		print(f"Temperature List: {temperatureList}")
+		print("----------------------------------------")
+
+	def printAfterLoadBalancing(self, voltageList):
+		print("----------------------------------------")
+		print("Sensor values for voltage after cooling")
+		print(f"Voltage List: {voltageList}")
+		print("----------------------------------------")
 
 	
 	def display(self):

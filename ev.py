@@ -18,7 +18,6 @@ class ElectricVehicle():
         self._process = []
         self._charging = False      
 
-        self._ui = UI(self._bms)
 
     def switchPowerState(self):
         '''Switch power state of vehicle - on or off'''
@@ -39,7 +38,6 @@ class ElectricVehicle():
         
         
     def powerStateOn(self):
-        #remove UI from init and initialise it here when turning on the power
         self._power = 20
         
         
@@ -50,7 +48,6 @@ class ElectricVehicle():
         
         if self._lowPowerMode:
             self._powerLimit = 60
-            self._ui.lowPowerModeLabel.config(text="Low Power Mode is enabled.")
         else:
             self._powerLimit = 0
 
@@ -67,20 +64,18 @@ class ElectricVehicle():
         UI will show these changes during the trip. '''
         with open("simulation.txt", "r") as f:
             simulation = []
-            
+ 
         # with tkinter, use after() to trigger processLoop to run it with tkintet
-        for power in simulation:
+        for power in range(len(simulation)):
 
+            uiState = self.display(power)
+            print(uiState)
             # -1 values represent charging in the trip
             if power == -1:
                 self.charge()
 
             self._bms.startProcess(power)
 
-        if self._charging: 
-            chargingProcess = Process(target=self.charge()) #sends to charge method
-            self._process.append(chargingProcess)
-            chargingProcess.start()
         
         
 
@@ -114,8 +109,27 @@ class ElectricVehicle():
 
 
 
-    def display(self, number):
+    def display(self, frame):
         '''Display what the BMS wants us to display onto the UI'''
+        uiState = ""
+        uiState += "========================================\n"
+        uiState += f"Frame: {frame}\n"
+        uiState += f"Current Charge: {self._bms.stateOfCharge}\n"
+        uiState += f"Distance Remaining (est): {self._bms.distanceRemaining}\n"
+        uiState += f"Health Status: {self._bms.stateOfHealth}\n"
+        uiState += f"Total Mileage: {self._bms.odometer.mileage}\n"
+        if self._lowPowerMode:
+            uiState += f"Low Power Mode is enabled\n"
+
+        if self._bms.stateOfChargeWarning:
+            uiState += f"{self._bms.stateOfChargeWarning}\n"
+
+        if self._bms.stateOfHealthWarning:
+            uiState += f"{self._bms.stateOfHealthWarning}\n"
+
+        uiState += "========================================\n"
+
+        return uiState
 
 
 if __name__ == "__main__":
