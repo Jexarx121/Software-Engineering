@@ -1,7 +1,7 @@
 from batteryModule import BatteryModule
 from odometer import Odometer
 from datetime import date
-from random import randint
+from random import randint, choice
 from time import time
 
 
@@ -12,7 +12,10 @@ class BatteryManagementSystem():
 	BATTERY_MANUFACTURE_DATE = date(2021, 1, 1)
 	CHARGE_DISCHARGE_MAXIMUM = 500
 	BATTERY_LIFETIME_ESTIMATE = 4
-	MAX_TEMPERATURE = 60
+	MAX_TEMPERATURE = 50
+	MAX_VOLTAGE = 500
+	MAX_CURRENT = 200
+	VOLTAGE_DIFF = 15
 
 	# Kilometers that this vehicle can travel on 100% SOC
 	MAXIMUM_DISTANCE = 300
@@ -22,18 +25,12 @@ class BatteryManagementSystem():
 
 	def __init__(self):
 
-		self._batteryPack = [BatteryModule() for i in range(
+		self._power = 0
+
+		self._batteryPack = [BatteryModule(BatteryManagementSystem.MAX_VOLTAGE / BatteryManagementSystem.NUMBER_OF_BATTERIES, BatteryManagementSystem.MAX_CURRENT / BatteryManagementSystem.NUMBER_OF_BATTERIES) for i in range(
 			BatteryManagementSystem.NUMBER_OF_BATTERIES)]
 
 		self.odometer = Odometer()
-
-		# Each threshold is based off the battery cell threshold
-		# Max threshold in battery / NUMBEROFBATTERIES
-		# KEVIN DECIDES ON THRESHOLD FROM BATTERY CELL
-		self._temperatureThreshold = 0
-		self._currentThreshold = 0
-
-		self._voltageDifference = 0
 
 		self._stateOfCharge = 20
 		self._distanceDriven = self.distanceDriven()
@@ -67,13 +64,78 @@ class BatteryManagementSystem():
   
 		#display some values to UI
 
+	def power_on(self, new_power):
+		self._power = new_power
+		required_voltage = new_power * BatteryManagementSystem.MAX_VOLTAGE
+		required_current = new_power * BatteryManagementSystem.MAX_CURRENT
 
-	# KWECADUCK THE MAGNUS!!!!
-	def demandPower(self):
-		'''Generates data from the battery based on the change in power.
-		Afterwards then calls the getData method.'''
-		pass
-	# KWECADUCK THE MAGNUS!!!!
+		voltage_per_cell = required_voltage / len(self._batteryPack)
+		current_per_cell = required_current / len(self._batteryPack)
+  
+		for cell in self._batteryPack:
+			cell.state = True
+			cell.updateVoltageData(self._power, voltage_per_cell)
+			cell.updateCurrentData(self._power, current_per_cell)
+			cell.generateTemperatureData()
+     
+	def power_off(self):
+		for cell in self._batterPack:
+			cell.state = False
+			cell.updateVoltageData(0, 0)
+			cell.updateCurrentData(0, 0)
+			cell.generateTemperatureData()
+        
+	def demandPower(self, new_power):
+		'''Increments data in the battery based on the power.'''
+		required_voltage = new_power * BatteryManagementSystem.MAX_VOLTAGE
+		required_current = new_power * BatteryManagementSystem.MAX_CURRENT
+  
+		if new_power < 1:
+			working_voltage = 0
+			working_current = 0
+
+			for cell in self._batteryPack:
+				working_voltage += cell.voltage
+				working_current += cell.current
+		
+	
+			if working_voltage < required_voltage and working_current < required_current:
+				battery_to_increase_voltage = choice(self._batteryPack)
+				battery_to_increase_current = choice(self._batteryPack)
+				while battery_to_increase_voltage.voltage >= (BatteryManagementSystem.MAX_VOLTAGE / len(self._batteryPack)):
+						battery_to_increase_voltage = choice(self._batteryPack)
+				while battery_to_increase_current.current >= (BatteryManagementSystem.MAX_CURRENT / len(self._batteryPack)):
+						battery_to_increase_current = choice(self._batteryPack)
+				power_change = new_power - self._power
+				voltage_change = power_change * BatteryManagementSystem.MAX_VOLTAGE
+				current_change = power_change * BatteryManagementSystem.MAX_CURRENT
+				battery_to_increase_voltage.updateVoltageData(new_power, voltage_change)
+				battery_to_increase_current.updateCurrentData(new_power, current_change)
+				battery_to_increase_current.generateTemperatureData()
+			elif working_voltage < required_voltage and not(working_current < required_current):
+				battery_to_increase = self._batteryPack[0]
+				for cell in self._batteryPack:
+					if cell.current > battery_to_increase.current and cell.voltage < (BatteryManagementSystem.MAX_VOLTAGE / len(self._batteryPack)):
+						battery_to_increase = cell
+				power_change = new_power - self._power
+				voltage_change = power_change * BatteryManagementSystem.MAX_VOLTAGE
+				battery_to_increase.updateVoltageData(new_power, voltage_change)
+			elif not(working_voltage < required_voltage) and working_current < required_current:
+				battery_to_increase = self._batteryPack[0]
+				for cell in self._batteryPack:
+					if cell.voltage > battery_to_increase.voltage and cell.current < (BatteryManagementSystem.MAX_CURRENT / len(self._batteryPack)):
+						battery_to_increase = cell
+				power_change = new_power - self._power
+				current_change = power_change * BatteryManagementSystem.MAX_CURRENT
+				battery_to_increase.updateCurrentData(new_power, current_change)
+				battery_to_increase.generateTemperatureData()
+		else:
+			for cell in self._batteryPack:
+				cell.updateVoltageData(new_power, required_voltage / len(self._batteryPack))
+				cell.updateCurrentData(new_power, required_current / len(self._batteryPack))
+				cell.generateTemperatureData()
+			
+		self._power = new_power
 
 	def getData(self):
 		'''Causes the sensors to get the data produced
@@ -105,11 +167,11 @@ class BatteryManagementSystem():
 
 		totalCurrent = 0
 
-		if max(temperatureList) >= self._temperatureThreshold:
+		if max(temperatureList) > BatteryManagementSystem.MAX_TEMPERATURE:
 			# increasing the power needed
 			self.cooling(temperatureList)
 
-		if max(voltageList) - min(voltageList) > self._voltageDifference:
+		if max(voltageList) - min(voltageList) > BatteryManagementSystem.VOLTAGE_DIFF or max(voltageList) > (BatteryManagementSystem.MAX_VOLTAGE / len(self._batteryPack)):
 			self.loadBalance(voltageList)
 
 		totalCurrent = sum(currentList)
@@ -175,16 +237,12 @@ class BatteryManagementSystem():
 	
 	def loadBalance(self, voltageList):
 		'''Execute load balancing if load is unbalanced'''
-
-		# If we're doing voltage based balancing (easiest one imo)
-		# set a difference threshold between voltages (usually difference of 0.1 to 1)
-		# and if any cells exceed that threshold, start balancing by
-		# drainig the voltage away or sharing it with other cells
-		# Sharing it out could lead to over voltage
-
-		# Need to account for faulty cells too
-		# BMS needs to detect that and prohibit load balancing with these type of cells
-		pass
+		required_voltage = self._power * BatteryManagementSystem.MAX_VOLTAGE
+		voltage_per_cell = required_voltage / len(self._batteryPack)
+		
+		for battery_index in range(len(self._batteryPack)):
+			voltage_change = voltage_per_cell - voltageList[battery_index]
+			self._batteryPack[battery_index].updateVoltageData(self._power, voltage_change)
 
 	def stateOfChargeWarning(self):
 		'''Warnings that display to the UI based on the current SOC.'''

@@ -9,6 +9,7 @@ class BatteryCell:
         
         self._max_voltage = max_voltage
         self._max_current = max_current
+        self._min_temperature = 12
 
         self._voltage = 0
         self._current = 0
@@ -17,25 +18,38 @@ class BatteryCell:
         
     def updateVoltageData(self, power, voltage_change):
         """Calculates the new voltage of the battery based on the given power change."""
+        if power == 0:
+            self._voltage = 0
+        else:
+            fluctuation = self.fluctuateData(power, "voltage")
+            voltage_change += fluctuation
+            self._voltage += voltage_change
+            if self._voltage > self._max_voltage:
+                self._voltage = self._max_voltage
 
-        fluctuation = self.fluctuateData(power, "voltage")
-        power_change += fluctuation
-        self._voltage += voltage_change
-
-    def generateCurrentData(self, power, current_change):
+    def updateCurrentData(self, power, current_change):
         """Calculates the new current of the battery based on the given power change."""
+        if power == 0:
+            self._current = 0
+        else:
+            fluctuation = self.fluctuateData(power, "current")
+            current_change += fluctuation
+            self._current += current_change
+            if self._current > self._current:
+                self._current = self._max_current
 
-        fluctuation = self.fluctuateData(power, "current")
-        power_change += fluctuation
-        self._voltage += current_change
-
-    def generateTemperatureData(self, power):
-        """Generates a random temperature value for the battery cells.\n
+    def generateTemperatureData(self):
+        """Generates a temperature value based on current of the battery cell.\n
            In terms of simulation, the temperature proved quite difficult and thus a more random data generation for temperature is used here."""
 
-        maxTemperature = 50 
-        temperatureGenerated = maxTemperature * power
-        self._temperature = randint(temperatureGenerated, maxTemperature)
+        if self._current == 0:
+            self._temperature = 0
+        else:
+            temp_range = round(self.current * 2.25)
+            if temp_range - 5 >= self._min_temperature:
+                self._temperature = randint(temp_range - 5, temp_range + 5)
+            else:
+                self._temperature = randint(self._min_temperature, temp_range + 5)
 
 
 
@@ -79,7 +93,10 @@ class BatteryCell:
 
     def getTemperature(self):
         return self._temperature
-
+    
+    def setTemperature(self, new_temperature):
+        self._temperature = new_temperature
+        
     def getState(self):
         return self._state
 
@@ -88,7 +105,7 @@ class BatteryCell:
 
     voltage = property(getVoltage)
     current = property(getCurrent)
-    temperature = property(getTemperature)
+    temperature = property(getTemperature, setTemperature)
     state = property(getState, setState)
 
  
