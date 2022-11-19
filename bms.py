@@ -64,7 +64,7 @@ class BatteryManagementSystem():
   
 		#display some values to UI
 
-	def power_on(self, new_power):
+	def powerOn(self, new_power):
 		self._power = new_power
 		required_voltage = new_power * BatteryManagementSystem.MAX_VOLTAGE
 		required_current = new_power * BatteryManagementSystem.MAX_CURRENT
@@ -78,7 +78,7 @@ class BatteryManagementSystem():
 			module.batteryCell.updateCurrentData(self._power, current_per_cell)
 			module.batteryCell.generateTemperatureData()
      
-	def power_off(self):
+	def powerOff(self):
 		for module in self._batterPack:
 			module.batteryCell.state = False
 			module.batteryCell.updateVoltageData(0, 0)
