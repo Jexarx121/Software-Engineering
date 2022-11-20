@@ -25,20 +25,14 @@ class ElectricVehicle():
         
         if self._powerState == False:
             self.powerStateOff()
-        else:
-            self.powerStateOn()
         
         
     def powerStateOff(self):
-        for process in self._process:
-            process.terminate()
+        # for process in self._process:
+            # process.terminate()
 
         self._lowPowerMode = False
-        self._power = 0
-        
-        
-    def powerStateOn(self):
-        self._power = 20
+        self._power = 0 
         
         
     def switchPowerMode(self):
@@ -47,7 +41,7 @@ class ElectricVehicle():
         self._lowPowerMode = not self._lowPowerMode
         
         if self._lowPowerMode:
-            self._powerLimit = 60
+            self._powerLimit = 0.6
         else:
             self._powerLimit = 0
 
@@ -62,19 +56,34 @@ class ElectricVehicle():
         '''Simulation of a trip with an electric vehicle. \n
         BMS will constantly run its operations while the vehicle simulates different through different scenarios.\n
         UI will show these changes during the trip. '''
-        with open("simulation.txt", "r") as f:
-            simulation = []
+        # with open("simulation.txt", "r") as f:
+        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0.40, 0]
  
         # with tkinter, use after() to trigger processLoop to run it with tkintet
         for power in range(len(simulation)):
 
+            self._power = simulation[power]
             uiState = self.display(power)
             print(uiState)
             # -1 values represent charging in the trip
-            if power == -1:
-                self.charge()
 
-            self._bms.startProcess(power)
+            # if power == -1:
+                # self.charge()
+
+            if self._power == 0:
+                if self._powerState == False:
+                    self.switchPowerState()
+                    continue
+                else:
+                    self.switchPowerState()
+                    self._bms.powerOff()
+                    continue
+            
+            if self._power == 0.2 and power == 1:
+                self._bms.powerOn(self._power)
+                continue
+
+            self._bms.startProcess(self._power)
 
         
         
@@ -88,7 +97,7 @@ class ElectricVehicle():
 
         # Process so function is interruptable from outside
         if self._powerState == False:
-            self.powerStateOn()
+            self.switchPowerState()
             self._charging = True
         
         charge = self._bms.stateOfCharge
@@ -114,18 +123,20 @@ class ElectricVehicle():
         uiState = ""
         uiState += "========================================\n"
         uiState += f"Frame: {frame}\n"
-        uiState += f"Current Charge: {self._bms.stateOfCharge}\n"
-        uiState += f"Distance Remaining (est): {self._bms.distanceRemaining}\n"
-        uiState += f"Health Status: {self._bms.stateOfHealth}\n"
-        uiState += f"Total Mileage: {self._bms.odometer.mileage}\n"
+        uiState += f"Current Charge: {self._bms.stateOfCharge}%\n"
+        uiState += f"Distance Remaining (est): {self._bms.distanceRemaining}km\n"
+        uiState += f"Health Status: {self._bms.stateOfHealth}%\n"
+        uiState += f"Total Mileage: {self._bms.odometer.mileage}km\n"
         if self._lowPowerMode:
             uiState += f"Low Power Mode is enabled\n"
 
         if self._bms.stateOfChargeWarning:
-            uiState += f"{self._bms.stateOfChargeWarning}\n"
+            warning  = self._bms.stateOfChargeWarning()
+            uiState += f"{warning}\n"
 
         if self._bms.stateOfHealthWarning:
-            uiState += f"{self._bms.stateOfHealthWarning}\n"
+            warning = self._bms.stateOfHealthWarning()
+            uiState += f"{warning}\n"
 
         uiState += "========================================\n"
 
@@ -134,6 +145,7 @@ class ElectricVehicle():
 
 if __name__ == "__main__":
     ev = ElectricVehicle()
+    ev.run()
 
 
 

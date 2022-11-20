@@ -33,13 +33,13 @@ class BatteryCell:
         """Calculates the new current of the battery based on the given power change."""
         if power == 0:
             self._current = 0
-        elif power == 1:
-            self._current = self._max_current
         else:
+            print(f"Current Change: {current_change}")
+            print(f"Current: {self.current}")
             fluctuation = self.fluctuateData(power, "current")
             current_change += fluctuation
             self._current += current_change
-            if self._current > self._max_current:
+            if self._current > self._current:
                 self._current = self._max_current
 
     def generateTemperatureData(self):
@@ -51,9 +51,12 @@ class BatteryCell:
         else:
             temp_range = round(self.current * 2.25)
             if temp_range - 5 >= self._min_temperature:
-                self._temperature = randint(temp_range - 5, temp_range + 5)
+                minRange = temp_range -5 
+                maxRange = temp_range + 5
+                self._temperature = randint(minRange, maxRange)
             else:
-                self._temperature = randint(self._min_temperature, temp_range + 5)
+                maxRange = temp_range + 5
+                self._temperature = randint(self._min_temperature, maxRange)
 
 
 
@@ -114,5 +117,4 @@ class BatteryCell:
 
  
 if __name__ == "__main__":
-    battery1 = BatteryCell()
-    battery2 = BatteryCell()
+    pass

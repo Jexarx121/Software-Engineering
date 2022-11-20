@@ -32,17 +32,17 @@ class BatteryManagementSystem():
 
 		self.odometer = Odometer()
 
-		self._stateOfCharge = 20
+		self._stateOfCharge = 50
 		self._distanceDriven = self.distanceDriven()
 
-		self._stateOfHealth = 80
+		self._stateOfHealth = 50
 		self._maxCapacity = (self._stateOfHealth / 100) * BatteryManagementSystem.BATTERY_PACK_CAPACITY
 
 		self._initialStateOfCharge = self._stateOfCharge
 		self._initialMileage = self.odometer.mileage
 
 		self._chargeDischargeCycles = 0
-		self._distanceRemaining = 0
+		self._distanceRemaining = BatteryManagementSystem.MAXIMUM_DISTANCE * (self._stateOfCharge/100)
 
 		self._chargeThreshold = 100
 
@@ -50,7 +50,7 @@ class BatteryManagementSystem():
 		
 		start = time()
   
-		self.demandPower()
+		self.demandPower(power)
 		
 		dataSet = self.getData()
 		totalCurrent = self.processData(dataSet[0], dataSet[1], dataSet[2])
@@ -77,9 +77,10 @@ class BatteryManagementSystem():
 			module.batteryCell.updateVoltageData(self._power, voltage_per_cell)
 			module.batteryCell.updateCurrentData(self._power, current_per_cell)
 			module.batteryCell.generateTemperatureData()
+
      
 	def powerOff(self):
-		for module in self._batterPack:
+		for module in self._batteryPack:
 			module.batteryCell.state = False
 			module.batteryCell.updateVoltageData(0, 0)
 			module.batteryCell.updateCurrentData(0, 0)
@@ -100,6 +101,7 @@ class BatteryManagementSystem():
 				working_current += module.batteryCell.current
 		
 			power_change = new_power - self._power
+			print(f"Power Change: {power_change}")
 			if working_voltage >= required_voltage:
 				voltage_change = power_change * BatteryManagementSystem.MAX_VOLTAGE
 			else:
@@ -117,9 +119,11 @@ class BatteryManagementSystem():
 				if module.batteryCell.current + current_change > (BatteryManagementSystem.MAX_CURRENT / BatteryManagementSystem.NUMBER_OF_BATTERIES) and battery_to_increase_current == None:
 					battery_to_increase_current = module.batteryCell
 
-			num_increases = power_change // 0.1
+			num_increases = power_change / 0.1
 			if battery_to_increase_voltage == None:
 				voltage_change = 0.1 * BatteryManagementSystem.MAX_VOLTAGE
+				num_increases = int(num_increases)
+				print(f"Num Increases: {num_increases}")
 				for increases in range(num_increases):
 					battery_to_increase_voltage = choice(self._batteryPack).batteryCell
 					battery_to_increase_voltage.updateVoltageData(new_power, voltage_change)
@@ -130,6 +134,7 @@ class BatteryManagementSystem():
 				current_change = 0.1 * BatteryManagementSystem.MAX_CURRENT
 				for increases in range(num_increases):
 					battery_to_increase_current = choice(self._batteryPack).batteryCell
+					print("HERE")
 					battery_to_increase_current.updateCurrentData(new_power, current_change)
 					battery_to_increase_current.generateTemperatureData()
 			else:
@@ -201,7 +206,9 @@ class BatteryManagementSystem():
 		Q = I * t where I is the current and t is the time taken for the current to flow (each frame).
 		Based on those parameters, we can calculate the amount of coulombs used 
 		when discharging the battery.'''
-
+		print("----------------------------------------")
+		print(f"Total time used to calculate: {timeTaken}")
+		print("----------------------------------------")
 		amountOfCoulombs = totalCurrent * timeTaken
 		self._stateOfCharge -= amountOfCoulombs  
 
@@ -235,14 +242,14 @@ class BatteryManagementSystem():
 		
 		while True:
 			for temperature in range(len(temperatureList)):
-				if temperatureList[temperature] >= self._temperatureThreshold:
+				if temperatureList[temperature] >= BatteryManagementSystem.MAX_TEMPERATURE:
 					self._batteryPack[temperature].batteryCell.temperature -= 1
 					temperatureList[temperature] -= 1
 				else:
 					self._batteryPack[temperature].batteryCell.temperature -= 0.5
 					temperatureList[temperature] -= 0.5
 
-			if max(temperatureList) < self._temperatureThreshold:
+			if max(temperatureList) < BatteryManagementSystem.MAX_TEMPERATURE:
 				break
 
 	
