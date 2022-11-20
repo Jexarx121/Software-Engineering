@@ -64,27 +64,26 @@ class BatteryManagementSystem():
   
 		#display some values to UI
 
-	def power_on(self, new_power):
+	def powerOn(self, new_power):
 		self._power = new_power
 		required_voltage = new_power * BatteryManagementSystem.MAX_VOLTAGE
 		required_current = new_power * BatteryManagementSystem.MAX_CURRENT
 
-		voltage_per_cell = required_voltage / len(self._batteryPack)
-		current_per_cell = required_current / len(self._batteryPack)
+		voltage_per_cell = required_voltage / BatteryManagementSystem.NUMBER_OF_BATTERIES
+		current_per_cell = required_current / BatteryManagementSystem.NUMBER_OF_BATTERIES
   
-		for cell in self._batteryPack:
-			cell.state = True
-			cell.updateVoltageData(self._power, voltage_per_cell)
-			cell.updateCurrentData(self._power, current_per_cell)
-			cell.generateTemperatureData()
+		for module in self._batteryPack:
+			module.batteryCell.state = True
+			module.batteryCell.updateVoltageData(self._power, voltage_per_cell)
+			module.batteryCell.updateCurrentData(self._power, current_per_cell)
+			module.batteryCell.generateTemperatureData()
      
-
-	def power_off(self):
-		for cell in self._batteryPack:
-			cell.state = False
-			cell.updateVoltageData(0, 0)
-			cell.updateCurrentData(0, 0)
-			cell.generateTemperatureData()
+	def powerOff(self):
+		for module in self._batterPack:
+			module.batteryCell.state = False
+			module.batteryCell.updateVoltageData(0, 0)
+			module.batteryCell.updateCurrentData(0, 0)
+			module.batteryCell.generateTemperatureData()
         
 
 	def demandPower(self, new_power):
@@ -96,46 +95,52 @@ class BatteryManagementSystem():
 			working_voltage = 0
 			working_current = 0
 
-			for cell in self._batteryPack:
-				working_voltage += cell.voltage
-				working_current += cell.current
+			for module in self._batteryPack:
+				working_voltage += module.batteryCell.voltage
+				working_current += module.batteryCell.current
 		
-	
-			if working_voltage < required_voltage and working_current < required_current:
-				battery_to_increase_voltage = choice(self._batteryPack)
-				battery_to_increase_current = choice(self._batteryPack)
-				while battery_to_increase_voltage.voltage >= (BatteryManagementSystem.MAX_VOLTAGE / len(self._batteryPack)):
-					battery_to_increase_voltage = choice(self._batteryPack)
-				while battery_to_increase_current.current >= (BatteryManagementSystem.MAX_CURRENT / len(self._batteryPack)):
-					battery_to_increase_current = choice(self._batteryPack)
-				power_change = new_power - self._power
+			power_change = new_power - self._power
+			if working_voltage >= required_voltage:
 				voltage_change = power_change * BatteryManagementSystem.MAX_VOLTAGE
+			else:
+				voltage_change = 0
+			if working_current >= required_current:
 				current_change = power_change * BatteryManagementSystem.MAX_CURRENT
+			else:
+				current_change = 0	
+    
+			battery_to_increase_voltage = None
+			battery_to_increase_current = None
+			for module in self._batteryPack:
+				if module.batteryCell.voltage + voltage_change > (BatteryManagementSystem.MAX_VOLTAGE / BatteryManagementSystem.NUMBER_OF_BATTERIES) and battery_to_increase_voltage == None:
+					battery_to_increase_voltage = module.batteryCell
+				if module.batteryCell.current + current_change > (BatteryManagementSystem.MAX_CURRENT / BatteryManagementSystem.NUMBER_OF_BATTERIES) and battery_to_increase_current == None:
+					battery_to_increase_current = module.batteryCell
+
+			num_increases = power_change // 0.1
+			if battery_to_increase_voltage == None:
+				voltage_change = 0.1 * BatteryManagementSystem.MAX_VOLTAGE
+				for increases in range(num_increases):
+					battery_to_increase_voltage = choice(self._batteryPack).batteryCell
+					battery_to_increase_voltage.updateVoltageData(new_power, voltage_change)
+			else:
 				battery_to_increase_voltage.updateVoltageData(new_power, voltage_change)
+
+			if battery_to_increase_current == None:
+				current_change = 0.1 * BatteryManagementSystem.MAX_CURRENT
+				for increases in range(num_increases):
+					battery_to_increase_current = choice(self._batteryPack).batteryCell
+					battery_to_increase_current.updateCurrentData(new_power, current_change)
+					battery_to_increase_current.generateTemperatureData()
+			else:
 				battery_to_increase_current.updateCurrentData(new_power, current_change)
 				battery_to_increase_current.generateTemperatureData()
-			elif working_voltage < required_voltage and not(working_current < required_current):
-				battery_to_increase = self._batteryPack[0]
-				for cell in self._batteryPack:
-					if cell.current > battery_to_increase.current and cell.voltage < (BatteryManagementSystem.MAX_VOLTAGE / len(self._batteryPack)):
-						battery_to_increase = cell
-				power_change = new_power - self._power
-				voltage_change = power_change * BatteryManagementSystem.MAX_VOLTAGE
-				battery_to_increase.updateVoltageData(new_power, voltage_change)
-			elif not(working_voltage < required_voltage) and working_current < required_current:
-				battery_to_increase = self._batteryPack[0]
-				for cell in self._batteryPack:
-					if cell.voltage > battery_to_increase.voltage and cell.current < (BatteryManagementSystem.MAX_CURRENT / len(self._batteryPack)):
-						battery_to_increase = cell
-				power_change = new_power - self._power
-				current_change = power_change * BatteryManagementSystem.MAX_CURRENT
-				battery_to_increase.updateCurrentData(new_power, current_change)
-				battery_to_increase.generateTemperatureData()
+			
 		else:
-			for cell in self._batteryPack:
-				cell.updateVoltageData(new_power, required_voltage / len(self._batteryPack))
-				cell.updateCurrentData(new_power, required_current / len(self._batteryPack))
-				cell.generateTemperatureData()
+			for module in self._batteryPack:
+				module.batteryCell.updateVoltageData(new_power, 0)
+				module.batteryCell.updateCurrentData(new_power, 0)
+				module.batteryCell.generateTemperatureData()
 			
 		self._power = new_power
 
@@ -176,7 +181,7 @@ class BatteryManagementSystem():
 			self.printAfterCooling(temperatureList)
 			
 
-		if max(voltageList) - min(voltageList) > BatteryManagementSystem.VOLTAGE_DIFF or max(voltageList) > (BatteryManagementSystem.MAX_VOLTAGE / len(self._batteryPack)):
+		if max(voltageList) - min(voltageList) > BatteryManagementSystem.VOLTAGE_DIFF or max(voltageList) > (BatteryManagementSystem.MAX_VOLTAGE / BatteryManagementSystem.NUMBER_OF_BATTERIES):
 			self.loadBalance(voltageList)
 			self.printAfterLoadBalancing(voltageList)
 
@@ -244,11 +249,12 @@ class BatteryManagementSystem():
 	def loadBalance(self, voltageList):
 		'''Execute load balancing if load is unbalanced'''
 		required_voltage = self._power * BatteryManagementSystem.MAX_VOLTAGE
-		voltage_per_cell = required_voltage / len(self._batteryPack)
+		voltage_per_cell = required_voltage / BatteryManagementSystem.NUMBER_OF_BATTERIES
 		
-		for battery_index in range(len(self._batteryPack)):
+		for battery_index in range(BatteryManagementSystem.NUMBER_OF_BATTERIES):
 			voltage_change = voltage_per_cell - voltageList[battery_index]
 			self._batteryPack[battery_index].batteryCell.updateVoltageData(self._power, voltage_change)
+			voltageList[battery_index] = self._batteryPack[battery_index].batteryCell.voltage
 
 	def stateOfChargeWarning(self):
 		'''Warnings that display to the UI based on the current SOC.'''

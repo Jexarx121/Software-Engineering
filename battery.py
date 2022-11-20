@@ -20,6 +20,8 @@ class BatteryCell:
         """Calculates the new voltage of the battery based on the given power change."""
         if power == 0:
             self._voltage = 0
+        elif power == 1:
+            self._voltage = self._max_voltage
         else:
             fluctuation = self.fluctuateData(power, "voltage")
             voltage_change += fluctuation
@@ -31,11 +33,13 @@ class BatteryCell:
         """Calculates the new current of the battery based on the given power change."""
         if power == 0:
             self._current = 0
+        elif power == 1:
+            self._current = self._max_current
         else:
             fluctuation = self.fluctuateData(power, "current")
             current_change += fluctuation
             self._current += current_change
-            if self._current > self._current:
+            if self._current > self._max_current:
                 self._current = self._max_current
 
     def generateTemperatureData(self):
