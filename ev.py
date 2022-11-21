@@ -41,7 +41,7 @@ class ElectricVehicle():
         
     def switchPowerMode(self):
         '''Switch either into or out of low power mode'''
-        sleep(5)
+        #sleep(5)
         self._lowPowerMode = not self._lowPowerMode
         
         if self._lowPowerMode:
@@ -62,7 +62,7 @@ class ElectricVehicle():
         UI will show these changes during the trip. '''
 
         # with open("simulation.txt", "r") as f:
-        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0.40, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
+        simulation = [0, 0.2, "L", 0.24, 0.28, 0.31, 0.33, 0.37, "L", 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
                       0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0]
  
 
@@ -78,7 +78,20 @@ class ElectricVehicle():
             uiState = self.display(power)
             print(uiState)
 
-<<<<<<< HEAD
+            if simulation[power] == "L" and self._lowPowerMode == False:
+                if simulation[power-1] >= 0.6:
+                    continue
+                else:
+                    self.switchPowerMode()
+                    continue
+                
+            if simulation[power] == "L" and self._lowPowerMode:
+                self.switchPowerMode()
+                continue
+            
+            if self._lowPowerMode and simulation[power] > 0.6:
+                self._power = 0.6
+                
             if self._power == "C":
                 beforeCharge = self._bms.stateOfCharge
                 timeToCharge = simulation[power+1]
@@ -93,10 +106,6 @@ class ElectricVehicle():
             if simulation[power-1] == "C":
                 # skip the time for charge 
                 continue
-=======
-            # if power == -1:
-            #     self.charge()
->>>>>>> 1c8e01d977ff6bfca6d44e904dcfa49576dd6707
 
             if self._power == 0:
                 if self._powerState == False:
