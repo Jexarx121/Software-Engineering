@@ -3,12 +3,26 @@ from battery import *
 
 class TestBattery(unittest.TestCase):
 
+    battery = BatteryCell(62.5, 25)
+
     def testGeneratureTemperatureData(self):
-        # check if values are negative
+        '''Test various conditions in the generateTemperatureData method.'''
+        
+        # check if temperature are negative or zero
+        self.assertGreaterEqual(self.battery.temperature, 0)
+
         # check if values are higher than threshold
-        pass
+        
 
     def testUpdateCurrentData(self):
+        '''Test if various conditions in the updateCurrentData method.'''
+
         # check if values are negative
+
         # check if values are higher than threshold
-        pass
+        self.assertLessEqual(self.battery.current, 25)
+
+
+if __name__ == "__main__":
+    unittest.main()
+

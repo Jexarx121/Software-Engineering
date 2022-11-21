@@ -41,7 +41,6 @@ class ElectricVehicle():
         
     def switchPowerMode(self):
         '''Switch either into or out of low power mode'''
-        sleep(5)
         self._lowPowerMode = not self._lowPowerMode
         
         if self._lowPowerMode:
@@ -78,7 +77,7 @@ class ElectricVehicle():
             uiState = self.display(power)
             print(uiState)
 
-<<<<<<< HEAD
+
             if self._power == "C":
                 beforeCharge = self._bms.stateOfCharge
                 timeToCharge = simulation[power+1]
@@ -93,19 +92,15 @@ class ElectricVehicle():
             if simulation[power-1] == "C":
                 # skip the time for charge 
                 continue
-=======
-            # if power == -1:
-            #     self.charge()
->>>>>>> 1c8e01d977ff6bfca6d44e904dcfa49576dd6707
 
             if self._power == 0:
                 if self._powerState == False:
                     self.switchPowerState()
-                    continue
                 else:
                     self.switchPowerState()
-                    continue
             
+                continue
+
             if self._power == 0.2 and simulation[power-1] == 0:
                 self._bms.powerOn(self._power)
                 continue
