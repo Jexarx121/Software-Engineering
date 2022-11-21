@@ -62,7 +62,7 @@ class ElectricVehicle():
         UI will show these changes during the trip. '''
 
         # with open("simulation.txt", "r") as f:
-        simulation = [0, 0.2, "L", 0.24, 0.28, 0.31, 0.33, 0.37, "L", 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
+        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, "C", 30, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
                       0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0]
  
 
@@ -156,6 +156,8 @@ class ElectricVehicle():
             self._bms.stateOfCharge += 1
 
             timeToCharge -= 1
+        #need to update distance driven to match new soc
+        self._bms._distanceDriven = self._bms.distanceDriven()
             
     
     def display(self, frame):

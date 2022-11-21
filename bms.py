@@ -127,11 +127,13 @@ class BatteryManagementSystem():
 					battery_to_increase_voltage = module.batteryCell
 				if module.batteryCell.current + current_change > (BatteryManagementSystem.MAX_CURRENT / BatteryManagementSystem.NUMBER_OF_BATTERIES) and battery_to_increase_current == None:
 					battery_to_increase_current = module.batteryCell
+			
+			num_increases = power_change / 0.01
+			num_increases = int(num_increases)
 
-			num_increases = power_change / 0.1
 			if battery_to_increase_voltage == None:
-				voltage_change = 0.1 * BatteryManagementSystem.MAX_VOLTAGE
-				num_increases = int(num_increases)
+				voltage_change = 0.01 * BatteryManagementSystem.MAX_VOLTAGE
+				# num_increases = int(num_increases)
 				for increases in range(num_increases):
 					battery_to_increase_voltage = choice(self._batteryPack).batteryCell
 					battery_to_increase_voltage.updateVoltageData(new_power, voltage_change)
@@ -139,7 +141,7 @@ class BatteryManagementSystem():
 				battery_to_increase_voltage.updateVoltageData(new_power, voltage_change)
 
 			if battery_to_increase_current == None:
-				current_change = 0.1 * BatteryManagementSystem.MAX_CURRENT
+				current_change = 0.01 * BatteryManagementSystem.MAX_CURRENT
 				for increases in range(num_increases):
 					battery_to_increase_current = choice(self._batteryPack).batteryCell
 					battery_to_increase_current.updateCurrentData(new_power, current_change)
@@ -234,7 +236,7 @@ class BatteryManagementSystem():
 		Based off that, calculate the distance remaining.\n
 		Add the distance driven to the odometer too.'''
 
-
+		# todo - if charged up breaks the calculation
 		#need to get the difference between distance driven before update and after
 		lastDistanceDriven = self._distanceDriven
 		#now update it based on new soc
