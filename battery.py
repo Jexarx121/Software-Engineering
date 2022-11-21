@@ -35,11 +35,10 @@ class BatteryCell:
             self._current = 0
         else:
             print(f"Current Change: {current_change}")
-            print(f"Current: {self.current}")
             fluctuation = self.fluctuateData(power, "current")
             current_change += fluctuation
             self._current += current_change
-            if self._current > self._current:
+            if self._current > self._max_current:
                 self._current = self._max_current
 
     def generateTemperatureData(self):
@@ -78,7 +77,7 @@ class BatteryCell:
             minRange = -5
             maxRange = 5
             
-            if 0.26 >= power and power <= 0.5:
+            if 0.26 <= power and power <= 0.5:
                 maxRange = 8
             elif power <= 0.75:
                 maxRange  = 12

@@ -8,10 +8,8 @@ from time import time
 class BatteryManagementSystem():
 	'''Represents a battery management system for an electric vehicle.'''
 
-	NUMBER_OF_BATTERIES = 8
 	BATTERY_MANUFACTURE_DATE = date(2021, 1, 1)
 	CHARGE_DISCHARGE_MAXIMUM = 500
-	BATTERY_LIFETIME_ESTIMATE = 4
 	MAX_TEMPERATURE = 50
 	MAX_VOLTAGE = 500
 	MAX_CURRENT = 200
@@ -35,13 +33,14 @@ class BatteryManagementSystem():
 		self._stateOfCharge = 50
 		self._distanceDriven = self.distanceDriven()
 
-		self._stateOfHealth = 50
-		self._maxCapacity = (self._stateOfHealth / 100) * BatteryManagementSystem.BATTERY_PACK_CAPACITY
-
 		self._initialStateOfCharge = self._stateOfCharge
 		self._initialMileage = self.odometer.mileage
 
-		self._chargeDischargeCycles = 0
+		# charge discharge cycles only increase after car stops and turns on again after charging or discharging entirely 
+		self._chargeDischargeCycles = 129.3
+
+		# Might have to round this off depending on numbers
+		self._maxCapacity = (1 - (self._chargeDischargeCycles / BatteryManagementSystem.CHARGE_DISCHARGE_MAXIMUM)) * BatteryManagementSystem.BATTERY_PACK_CAPACITY
 		self._distanceRemaining = BatteryManagementSystem.MAXIMUM_DISTANCE * (self._stateOfCharge/100)
 
 		self._chargeThreshold = 100
@@ -71,7 +70,7 @@ class BatteryManagementSystem():
 
 		voltage_per_cell = required_voltage / BatteryManagementSystem.NUMBER_OF_BATTERIES
 		current_per_cell = required_current / BatteryManagementSystem.NUMBER_OF_BATTERIES
-  
+
 		for module in self._batteryPack:
 			module.batteryCell.state = True
 			module.batteryCell.updateVoltageData(self._power, voltage_per_cell)
@@ -101,7 +100,6 @@ class BatteryManagementSystem():
 				working_current += module.batteryCell.current
 		
 			power_change = new_power - self._power
-			print(f"Power Change: {power_change}")
 			if working_voltage >= required_voltage:
 				voltage_change = power_change * BatteryManagementSystem.MAX_VOLTAGE
 			else:
@@ -123,7 +121,6 @@ class BatteryManagementSystem():
 			if battery_to_increase_voltage == None:
 				voltage_change = 0.1 * BatteryManagementSystem.MAX_VOLTAGE
 				num_increases = int(num_increases)
-				print(f"Num Increases: {num_increases}")
 				for increases in range(num_increases):
 					battery_to_increase_voltage = choice(self._batteryPack).batteryCell
 					battery_to_increase_voltage.updateVoltageData(new_power, voltage_change)
@@ -134,7 +131,6 @@ class BatteryManagementSystem():
 				current_change = 0.1 * BatteryManagementSystem.MAX_CURRENT
 				for increases in range(num_increases):
 					battery_to_increase_current = choice(self._batteryPack).batteryCell
-					print("HERE")
 					battery_to_increase_current.updateCurrentData(new_power, current_change)
 					battery_to_increase_current.generateTemperatureData()
 			else:
@@ -217,12 +213,10 @@ class BatteryManagementSystem():
 
 	def sohAlgorithm(self):
 		'''SOH is calculated by getting the average of charge/discharge cycles lifetime and battery lifetime, based on estimated lifetimes.'''
+		
+		# print(f"Max capacity: {self._maxCapacity}")
+		self._stateOfHealth = (self._maxCapacity / BatteryManagementSystem.BATTERY_PACK_CAPACITY) * 100
 
-		chargeDischargeCyclesPercentage = self._chargeDischargeCycles / BatteryManagementSystem.CHARGE_DISCHARGE_MAXIMUM
-		batteryLifetimePercentage = ((date.today()-self.BATTERY_MANUFACTURE_DATE)).days / BatteryManagementSystem.BATTERY_LIFETIME_ESTIMATE
-
-		self._stateOfHealth = ((chargeDischargeCyclesPercentage+batteryLifetimePercentage) / 2) 
-		self._maxCapacity = (self._stateOfHealth / 100) * BatteryManagementSystem.BATTERY_PACK_CAPACITY
 
 
 	def distanceRemainingAlgorithm(self, mileage):
@@ -246,8 +240,8 @@ class BatteryManagementSystem():
 					self._batteryPack[temperature].batteryCell.temperature -= 1
 					temperatureList[temperature] -= 1
 				else:
-					self._batteryPack[temperature].batteryCell.temperature -= 0.5
-					temperatureList[temperature] -= 0.5
+					self._batteryPack[temperature].batteryCell.temperature -= 0.15
+					temperatureList[temperature] -= 0.15
 
 			if max(temperatureList) < BatteryManagementSystem.MAX_TEMPERATURE:
 				break
@@ -352,7 +346,7 @@ class BatteryManagementSystem():
 	voltageDifference = property(getVoltageDifference, setVoltageDifference)
 	currentThreshold = property(getCurrentThreshold, setCurrentThreshold)
 	distanceRemaining = property(getDistanceRemaining)
-	chargeDischargeCycles = property(getChargeDischargeCycles)
+	chargeDischargeCycles = property(getChargeDischargeCycles, setChargeDischargeCycles)
 	stateOfCharge = property(getStateOfCharge, setStateOfCharge)
 	stateOfHealth = property(getStateOfHealth, setStateOfHealth)
 

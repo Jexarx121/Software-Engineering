@@ -57,7 +57,7 @@ class ElectricVehicle():
         BMS will constantly run its operations while the vehicle simulates different through different scenarios.\n
         UI will show these changes during the trip. '''
         # with open("simulation.txt", "r") as f:
-        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0.40, 0]
+        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0.40, 0.43, 0.47, 0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87, 0.93, 0.95, 0,95]
  
         # with tkinter, use after() to trigger processLoop to run it with tkintet
         for power in range(len(simulation)):
@@ -65,10 +65,21 @@ class ElectricVehicle():
             self._power = simulation[power]
             uiState = self.display(power)
             print(uiState)
-            # -1 values represent charging in the trip
 
-            # if power == -1:
-                # self.charge()
+            if self._power == "C":
+                beforeCharge = self._bms.stateOfCharge
+                timeToCharge = simulation[power+1]
+                print("----------------------------------------")
+                print(f"Charging battery for: {timeToCharge}s")
+                print("----------------------------------------")
+                self.charge(timeToCharge)
+                afterCharge = self._bms.stateOfCharge
+                self.disconnectCharger(beforeCharge, afterCharge)
+                continue
+
+            if simulation[power-1] == "C":
+                # skip the time for charge 
+                continue
 
             if self._power == 0:
                 if self._powerState == False:
@@ -85,39 +96,31 @@ class ElectricVehicle():
 
             self._bms.startProcess(self._power)
 
-        
+
         
 
-    def charge(self):
+    def charge(self, timeToCharge):
         '''Initiate charging. It is a blackbox algorithm in this case where the state of charge increments after a certain period.\n
         Changes charging state and increments the charge/discharge cycles.\n
         State of charge starts to trickle when reaching 100% to avoid overcharging.\n
-        Charging only stops when driver disconnects plug.'''
-        self._bms.chargeDischargeCycles += 1
+        Charging only stops time to charge is decremented to zero.'''
 
-        # Process so function is interruptable from outside
         if self._powerState == False:
             self.switchPowerState()
             self._charging = True
         
         charge = self._bms.stateOfCharge
-        while self._charging == True:
+        while timeToCharge > 0:
         
-            sleep(10)
+            sleep(1)
             if charge == self._bms._chargeThreshold:
                 # Trickling to prevent overcharge
                 self._bms.stateOfCharge -= 1
 
             self._bms.stateOfCharge += 1
 
+            timeToCharge -= 1
     
-    def disconnectCharger(self):
-        """Simulate driver disconnecting charger."""
-        if self._charging:
-            self._charging = False
-
-
-
     def display(self, frame):
         '''Display what the BMS wants us to display onto the UI'''
         uiState = ""
