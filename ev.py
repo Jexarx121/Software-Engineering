@@ -139,6 +139,8 @@ class ElectricVehicle():
         Changes charging state and increments the charge/discharge cycles.\n
         State of charge starts to trickle when reaching 100% to avoid overcharging.\n
         Charging only stops time to charge is decremented to zero.'''
+        if timeToCharge > 0:
+            return "Time to charge should be a value greater than 0."
 
         if self._powerState == False:
             self.switchPowerState()
@@ -155,6 +157,8 @@ class ElectricVehicle():
             self._bms.stateOfCharge += 1
 
             timeToCharge -= 1
+        #need to update distance driven to match new soc
+        self._bms._distanceDriven = self._bms.distanceDriven()
             
     
     def display(self, frame):
