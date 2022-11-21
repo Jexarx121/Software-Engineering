@@ -13,6 +13,7 @@ class BatteryManagementSystem():
 	CHARGE_DISCHARGE_MAXIMUM = 500
 	BATTERY_LIFETIME_ESTIMATE = 4
 	MAX_TEMPERATURE = 50
+	MIN_TEMPERATURE = 12
 	MAX_VOLTAGE = 500
 	MAX_CURRENT = 200
 	VOLTAGE_DIFF = 15
@@ -38,7 +39,7 @@ class BatteryManagementSystem():
 		self._stateOfHealth = 50
 		self._maxCapacity = (self._stateOfHealth / 100) * BatteryManagementSystem.BATTERY_PACK_CAPACITY
 
-		self._initialStateOfCharge = self._stateOfCharge
+		self._initialStateOfCharge = 100#self._stateOfCharge
 		self._initialMileage = self.odometer.mileage
 
 		self._chargeDischargeCycles = 0
@@ -60,7 +61,7 @@ class BatteryManagementSystem():
 
 		self.sohAlgorithm()
 		self.socAlgorithm(totalCurrent, difference)
-		self.distanceRemainingAlgorithm(self.odometer.mileage)
+		self.distanceRemainingAlgorithm()
   
 		#display some values to UI
 
@@ -85,6 +86,8 @@ class BatteryManagementSystem():
 			module.batteryCell.updateVoltageData(0, 0)
 			module.batteryCell.updateCurrentData(0, 0)
 			module.batteryCell.generateTemperatureData()
+   
+
         
 
 	def demandPower(self, new_power):
@@ -198,6 +201,7 @@ class BatteryManagementSystem():
 	def distanceDriven(self):
 		'''Get the distance driven on current charge from the max distance.'''
 		distanceDriven = BatteryManagementSystem.MAXIMUM_DISTANCE * (1 - (self._stateOfCharge/100))
+  #distance driven = 300* (1- 0.5) = 150
 		return distanceDriven
 		
 
@@ -212,7 +216,6 @@ class BatteryManagementSystem():
 		amountOfCoulombs = totalCurrent * timeTaken
 		self._stateOfCharge -= amountOfCoulombs  
 
-		self._distanceDriven = self.distanceDriven()
 
 
 	def sohAlgorithm(self):
@@ -225,15 +228,24 @@ class BatteryManagementSystem():
 		self._maxCapacity = (self._stateOfHealth / 100) * BatteryManagementSystem.BATTERY_PACK_CAPACITY
 
 
-	def distanceRemainingAlgorithm(self, mileage):
+	def distanceRemainingAlgorithm(self):
 		'''Calculate the amount of SOC used and the distance driven.
 		Based off that, calculate the distance remaining.\n
 		Add the distance driven to the odometer too.'''
 
-		self.odometer.mileage += self._distanceDriven
+
+		#need to get the difference between distance driven before update and after
+		lastDistanceDriven = self._distanceDriven
+		#now update it based on new soc
+		self._distanceDriven = self.distanceDriven()
+		#get difference
+		difference = self._distanceDriven-lastDistanceDriven
+		#add this to mileage
+		self.odometer.mileage = self.odometer.mileage + difference
+
 
 		stateOfChargeUsed = self._initialStateOfCharge - self._stateOfCharge
-		self._distanceRemaining = (self._distanceDriven/stateOfChargeUsed) * self._stateOfCharge
+		self._distanceRemaining = float((self._distanceDriven/stateOfChargeUsed) * self._stateOfCharge)
 
 
 	def cooling(self, temperatureList):
@@ -245,9 +257,12 @@ class BatteryManagementSystem():
 				if temperatureList[temperature] >= BatteryManagementSystem.MAX_TEMPERATURE:
 					self._batteryPack[temperature].batteryCell.temperature -= 1
 					temperatureList[temperature] -= 1
-				else:
+				else: 
+					if self._batteryPack[temperature].batteryCell.temperature <= BatteryManagementSystem.MIN_TEMPERATURE:
+						#this prevents it from going to low
+						continue
 					self._batteryPack[temperature].batteryCell.temperature -= 0.5
-					temperatureList[temperature] -= 0.5
+					temperatureList[temperature] -= 0.15
 
 			if max(temperatureList) < BatteryManagementSystem.MAX_TEMPERATURE:
 				break

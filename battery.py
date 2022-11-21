@@ -5,11 +5,13 @@ class BatteryCell:
     Cells keep track of their own voltage , current, temperature which the sensors will read.
     This is not how sensors work in the real world but for the sensors in the simulation to read the data it has to be 'stored' by the cell."""
 
+    MIN_CURRENT = 5
+    MIN_TEMPERATURE = 12
+
     def __init__(self, max_voltage, max_current):
         
         self._max_voltage = max_voltage
         self._max_current = max_current
-        self._min_temperature = 12
 
         self._voltage = 0
         self._current = 0
@@ -35,12 +37,14 @@ class BatteryCell:
             self._current = 0
         else:
             print(f"Current Change: {current_change}")
-            print(f"Current: {self.current}")
+            
             fluctuation = self.fluctuateData(power, "current")
             current_change += fluctuation
             self._current += current_change
-            if self._current > self._current:
+            if self._current > self._max_current:
                 self._current = self._max_current
+            if self._current < BatteryCell.MIN_CURRENT:
+                self._current = BatteryCell.MIN_CURRENT
 
     def generateTemperatureData(self):
         """Generates a temperature value based on current of the battery cell.\n
@@ -50,13 +54,13 @@ class BatteryCell:
             self._temperature = 0
         else:
             temp_range = round(self.current * 2.25)
-            if temp_range - 5 >= self._min_temperature:
-                minRange = temp_range -5 
+            if temp_range - 5 >= BatteryCell.MIN_TEMPERATURE:
+                minRange = temp_range - 5 
                 maxRange = temp_range + 5
                 self._temperature = randint(minRange, maxRange)
             else:
-                maxRange = temp_range + 5
-                self._temperature = randint(self._min_temperature, maxRange)
+                maxRange = temp_range + BatteryCell.MIN_TEMPERATURE
+                self._temperature = randint(BatteryCell.MIN_TEMPERATURE, maxRange)
 
 
 
@@ -75,17 +79,17 @@ class BatteryCell:
                 maxRange = 10
                 minRange = -1
         else:
-            minRange = -5
-            maxRange = 5
+            minRange = -3
+            maxRange = 1
             
-            if 0.26 >= power and power <= 0.5:
-                maxRange = 8
-            elif power <= 0.75:
-                maxRange  = 12
-                minRange = -2
-            else:
-                maxRange = 15
-                minRange = 0
+            # if 0.26 <= power and power <= 0.5:
+            #     maxRange = 8
+            # elif power <= 0.75:
+            #     maxRange  = 12
+            #     minRange = -2
+            # else:
+            #     maxRange = 15
+            #     minRange = 0
                 
             
         fluctuationValue = randint(minRange, maxRange)

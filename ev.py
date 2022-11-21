@@ -57,7 +57,8 @@ class ElectricVehicle():
         BMS will constantly run its operations while the vehicle simulates different through different scenarios.\n
         UI will show these changes during the trip. '''
         # with open("simulation.txt", "r") as f:
-        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0.40, 0]
+        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0.40, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
+                      0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0]
  
         # with tkinter, use after() to trigger processLoop to run it with tkintet
         for power in range(len(simulation)):
@@ -68,7 +69,7 @@ class ElectricVehicle():
             # -1 values represent charging in the trip
 
             # if power == -1:
-                # self.charge()
+            #     self.charge()
 
             if self._power == 0:
                 if self._powerState == False:
