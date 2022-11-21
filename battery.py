@@ -104,6 +104,9 @@ class BatteryCell:
 
     def getTemperature(self):
         return self._temperature
+
+    def setCurrent(self, current):
+        self._current = current
     
     def setTemperature(self, new_temperature):
         self._temperature = new_temperature
@@ -115,9 +118,10 @@ class BatteryCell:
         self._state = state
 
     voltage = property(getVoltage)
-    current = property(getCurrent)
+    current = property(getCurrent, setCurrent)
     temperature = property(getTemperature, setTemperature)
     state = property(getState, setState)
+
 
  
 if __name__ == "__main__":

@@ -70,7 +70,6 @@ class BatteryManagementSystem():
 		self.socAlgorithm(totalCurrent, difference)
 		self.distanceRemainingAlgorithm()
   
-		#display some values to UI
 
 	def powerOn(self, new_power):
 		self._power = new_power
@@ -93,9 +92,7 @@ class BatteryManagementSystem():
 			module.batteryCell.updateVoltageData(0, 0)
 			module.batteryCell.updateCurrentData(0, 0)
 			module.batteryCell.generateTemperatureData()
-   
-
-        
+    
 
 	def demandPower(self, new_power):
 		'''Increments data in the battery based on the power.'''
@@ -155,6 +152,7 @@ class BatteryManagementSystem():
 				module.batteryCell.generateTemperatureData()
 			
 		self._power = new_power
+
 
 	def getData(self):
 		'''Causes the sensors to get the data produced
@@ -226,7 +224,6 @@ class BatteryManagementSystem():
 		
 		# print(f"Max capacity: {self._maxCapacity}")
 		self._stateOfHealth = (self._maxCapacity / BatteryManagementSystem.BATTERY_PACK_CAPACITY) * 100
-
 
 
 	def distanceRemainingAlgorithm(self):
