@@ -17,6 +17,7 @@ class BatteryManagementSystem():
 	CHARGE_DISCHARGE_MAXIMUM = 500
 	MIN_TEMPERATURE = 12
 	MAX_TEMPERATURE = 50
+	MIN_TEMPERATURE = 12
 	MAX_VOLTAGE = 500
 	MAX_CURRENT = 200
 	VOLTAGE_DIFF = 15
@@ -67,7 +68,7 @@ class BatteryManagementSystem():
 
 		self.sohAlgorithm()
 		self.socAlgorithm(totalCurrent, difference)
-		self.distanceRemainingAlgorithm(self.odometer.mileage)
+		self.distanceRemainingAlgorithm()
   
 		#display some values to UI
 
@@ -92,6 +93,8 @@ class BatteryManagementSystem():
 			module.batteryCell.updateVoltageData(0, 0)
 			module.batteryCell.updateCurrentData(0, 0)
 			module.batteryCell.generateTemperatureData()
+   
+
         
 
 	def demandPower(self, new_power):
@@ -202,6 +205,7 @@ class BatteryManagementSystem():
 	def distanceDriven(self):
 		'''Get the distance driven on current charge from the max distance.'''
 		distanceDriven = BatteryManagementSystem.MAXIMUM_DISTANCE * (1 - (self._stateOfCharge/100))
+  #distance driven = 300* (1- 0.5) = 150
 		return distanceDriven
 		
 
@@ -225,7 +229,7 @@ class BatteryManagementSystem():
 
 
 
-	def distanceRemainingAlgorithm(self, mileage):
+	def distanceRemainingAlgorithm(self):
 		'''Calculate the amount of SOC used and the distance driven.
 		Based off that, calculate the distance remaining.\n
 		Add the distance driven to the odometer too.'''
@@ -259,7 +263,7 @@ class BatteryManagementSystem():
 						#this prevents it from going to low
 						continue
 					self._batteryPack[temperature].batteryCell.temperature -= 0.5
-					temperatureList[temperature] -= 0.15
+					temperatureList[temperature] -= 0.5
 
 			if max(temperatureList) < BatteryManagementSystem.MAX_TEMPERATURE:
 				break

@@ -78,6 +78,7 @@ class ElectricVehicle():
             uiState = self.display(power)
             print(uiState)
 
+<<<<<<< HEAD
             if self._power == "C":
                 beforeCharge = self._bms.stateOfCharge
                 timeToCharge = simulation[power+1]
@@ -92,6 +93,10 @@ class ElectricVehicle():
             if simulation[power-1] == "C":
                 # skip the time for charge 
                 continue
+=======
+            # if power == -1:
+            #     self.charge()
+>>>>>>> 1c8e01d977ff6bfca6d44e904dcfa49576dd6707
 
             if self._power == 0:
                 if self._powerState == False:
