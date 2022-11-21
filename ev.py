@@ -33,6 +33,10 @@ class ElectricVehicle():
 
         self._lowPowerMode = False
         self._power = 0 
+        self._bms.powerOff()
+        print("----------------------------------------")
+        print(f"Vehicle shutting down.")
+        print("----------------------------------------")
         
         
     def switchPowerMode(self):
@@ -56,11 +60,19 @@ class ElectricVehicle():
         '''Simulation of a trip with an electric vehicle. \n
         BMS will constantly run its operations while the vehicle simulates different through different scenarios.\n
         UI will show these changes during the trip. '''
+
         # with open("simulation.txt", "r") as f:
-        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0.40, 0.43, 0.47, 0.52, 0.57, 0.62, 0.67, 0.72, 0.77, 0.82, 0.87, 0.93, 0.95, 0,95]
+        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0.40, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
+                      0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0]
  
+
         # with tkinter, use after() to trigger processLoop to run it with tkintet
         for power in range(len(simulation)):
+
+            if self._bms.stateOfCharge == 0:
+                self._bms.powerOff()
+                self.switchPowerState()
+                break
 
             self._power = simulation[power]
             uiState = self.display(power)
@@ -87,16 +99,26 @@ class ElectricVehicle():
                     continue
                 else:
                     self.switchPowerState()
-                    self._bms.powerOff()
                     continue
             
-            if self._power == 0.2 and power == 1:
+            if self._power == 0.2 and simulation[power-1] == 0:
                 self._bms.powerOn(self._power)
                 continue
 
             self._bms.startProcess(self._power)
 
 
+    def disconnectCharger(self, beforeCharge, afterCharge):
+        '''Disconnects the charger after charging time is finished.\n
+        Increments the charge/discharge cycles of battery depending on the amount of charge gained and the bms DOD.'''
+        if self._charging:
+            self._charging = False
+
+            incrementCycle = (afterCharge - beforeCharge / 100) / BatteryManagementSystem.DEPTH_OF_DISCHARGE
+            print("----------------------------------------")
+            print(f"Charge/discharge cycles increased by: {incrementCycle}")
+            print("----------------------------------------")
+            self._bms.chargeDischargeCycles += incrementCycle
         
 
     def charge(self, timeToCharge):
@@ -120,6 +142,7 @@ class ElectricVehicle():
             self._bms.stateOfCharge += 1
 
             timeToCharge -= 1
+            
     
     def display(self, frame):
         '''Display what the BMS wants us to display onto the UI'''

@@ -9,7 +9,13 @@ class BatteryManagementSystem():
 	'''Represents a battery management system for an electric vehicle.'''
 
 	BATTERY_MANUFACTURE_DATE = date(2021, 1, 1)
+	BATTERY_LIFETIME_ESTIMATE = 365 * 9
+
+	NUMBER_OF_BATTERIES = 8
+	DEPTH_OF_DISCHARGE = 100
+	# Assuming 80 - 100% DOD
 	CHARGE_DISCHARGE_MAXIMUM = 500
+	MIN_TEMPERATURE = 12
 	MAX_TEMPERATURE = 50
 	MAX_VOLTAGE = 500
 	MAX_CURRENT = 200
@@ -33,7 +39,7 @@ class BatteryManagementSystem():
 		self._stateOfCharge = 50
 		self._distanceDriven = self.distanceDriven()
 
-		self._initialStateOfCharge = self._stateOfCharge
+		self._initialStateOfCharge = 100
 		self._initialMileage = self.odometer.mileage
 
 		# charge discharge cycles only increase after car stops and turns on again after charging or discharging entirely 
@@ -43,6 +49,8 @@ class BatteryManagementSystem():
 		self._maxCapacity = (1 - (self._chargeDischargeCycles / BatteryManagementSystem.CHARGE_DISCHARGE_MAXIMUM)) * BatteryManagementSystem.BATTERY_PACK_CAPACITY
 		self._distanceRemaining = BatteryManagementSystem.MAXIMUM_DISTANCE * (self._stateOfCharge/100)
 
+		self._stateOfHealth = 0
+		self.sohAlgorithm()
 		self._chargeThreshold = 100
 
 	def startProcess(self, power):
@@ -208,8 +216,6 @@ class BatteryManagementSystem():
 		amountOfCoulombs = totalCurrent * timeTaken
 		self._stateOfCharge -= amountOfCoulombs  
 
-		self._distanceDriven = self.distanceDriven()
-
 
 	def sohAlgorithm(self):
 		'''SOH is calculated by getting the average of charge/discharge cycles lifetime and battery lifetime, based on estimated lifetimes.'''
@@ -224,10 +230,19 @@ class BatteryManagementSystem():
 		Based off that, calculate the distance remaining.\n
 		Add the distance driven to the odometer too.'''
 
-		self.odometer.mileage += self._distanceDriven
+
+		#need to get the difference between distance driven before update and after
+		lastDistanceDriven = self._distanceDriven
+		#now update it based on new soc
+		self._distanceDriven = self.distanceDriven()
+		#get difference
+		difference = self._distanceDriven-lastDistanceDriven
+		#add this to mileage
+		self.odometer.mileage = self.odometer.mileage + difference
+
 
 		stateOfChargeUsed = self._initialStateOfCharge - self._stateOfCharge
-		self._distanceRemaining = (self._distanceDriven/stateOfChargeUsed) * self._stateOfCharge
+		self._distanceRemaining = float((self._distanceDriven/stateOfChargeUsed) * self._stateOfCharge)
 
 
 	def cooling(self, temperatureList):
@@ -239,8 +254,11 @@ class BatteryManagementSystem():
 				if temperatureList[temperature] >= BatteryManagementSystem.MAX_TEMPERATURE:
 					self._batteryPack[temperature].batteryCell.temperature -= 1
 					temperatureList[temperature] -= 1
-				else:
-					self._batteryPack[temperature].batteryCell.temperature -= 0.15
+				else: 
+					if self._batteryPack[temperature].batteryCell.temperature <= BatteryManagementSystem.MIN_TEMPERATURE:
+						#this prevents it from going to low
+						continue
+					self._batteryPack[temperature].batteryCell.temperature -= 0.5
 					temperatureList[temperature] -= 0.15
 
 			if max(temperatureList) < BatteryManagementSystem.MAX_TEMPERATURE:
@@ -256,6 +274,7 @@ class BatteryManagementSystem():
 			voltage_change = voltage_per_cell - voltageList[battery_index]
 			self._batteryPack[battery_index].batteryCell.updateVoltageData(self._power, voltage_change)
 			voltageList[battery_index] = self._batteryPack[battery_index].batteryCell.voltage
+
 
 	def stateOfChargeWarning(self):
 		'''Warnings that display to the UI based on the current SOC.'''
@@ -302,9 +321,6 @@ class BatteryManagementSystem():
 		print("----------------------------------------")
 
 	
-	def display(self):
-		pass
-	
 	def getStateOfCharge(self):
 		return self._stateOfCharge
 	
@@ -340,6 +356,12 @@ class BatteryManagementSystem():
 
 	def getChargeDischargeCycles(self):
 		return self._chargeDischargeCycles
+
+	def setChargeDischargeCycles(self, value):
+		self._chargeDischargeCycles += value
+	
+	def getInitialStateOfCharge(self):
+		return self._initialStateOfCharge
 
 	
 	temperatureThreshold = property(getTemperatureThreshold, setTemperatureThreshold)
