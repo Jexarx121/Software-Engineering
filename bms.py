@@ -17,7 +17,6 @@ class BatteryManagementSystem():
 	CHARGE_DISCHARGE_MAXIMUM = 500
 	MIN_TEMPERATURE = 12
 	MAX_TEMPERATURE = 50
-	MIN_TEMPERATURE = 12
 	MAX_VOLTAGE = 500
 	MAX_CURRENT = 200
 	VOLTAGE_DIFF = 15
@@ -72,6 +71,7 @@ class BatteryManagementSystem():
   
 
 	def powerOn(self, new_power):
+		"""Sets the initial values of each battery in the battery pack when the EV is powered on"""
 		self._power = new_power
 		required_voltage = new_power * BatteryManagementSystem.MAX_VOLTAGE
 		required_current = new_power * BatteryManagementSystem.MAX_CURRENT
@@ -87,6 +87,7 @@ class BatteryManagementSystem():
 
      
 	def powerOff(self):
+		"""'Turns off' each battery in the battery pack by setting all values to 0"""
 		for module in self._batteryPack:
 			module.batteryCell.state = False
 			module.batteryCell.updateVoltageData(0, 0)
@@ -95,20 +96,20 @@ class BatteryManagementSystem():
     
 
 	def demandPower(self, new_power):
-		'''Increments data in the battery based on the power.'''
+		'''Increments data in the battery based on the new power of the EV. This method is run each time the EV's power changes and facilitates the 'updating' of battery data as a result of this power change'''
 		required_voltage = new_power * BatteryManagementSystem.MAX_VOLTAGE
 		required_current = new_power * BatteryManagementSystem.MAX_CURRENT
   
-		if new_power < 1:
+		if new_power < 1: #Checks to make sure power is not at maximum
 			working_voltage = 0
 			working_current = 0
 
-			for module in self._batteryPack:
+			for module in self._batteryPack: #Calculates the current voltage and current in the battery pack
 				working_voltage += module.batteryCell.voltage
 				working_current += module.batteryCell.current
 		
 			power_change = new_power - self._power
-			if working_voltage >= required_voltage:
+			if working_voltage >= required_voltage: 
 				voltage_change = power_change * BatteryManagementSystem.MAX_VOLTAGE
 			else:
 				voltage_change = 0
@@ -119,7 +120,7 @@ class BatteryManagementSystem():
     
 			battery_to_increase_voltage = None
 			battery_to_increase_current = None
-			for module in self._batteryPack:
+			for module in self._batteryPack: #Checks if there is a battery in the battery pack that can accept the full increase to voltage/current
 				if module.batteryCell.voltage + voltage_change > (BatteryManagementSystem.MAX_VOLTAGE / BatteryManagementSystem.NUMBER_OF_BATTERIES) and battery_to_increase_voltage == None:
 					battery_to_increase_voltage = module.batteryCell
 				if module.batteryCell.current + current_change > (BatteryManagementSystem.MAX_CURRENT / BatteryManagementSystem.NUMBER_OF_BATTERIES) and battery_to_increase_current == None:
@@ -128,9 +129,8 @@ class BatteryManagementSystem():
 			num_increases = power_change / 0.01
 			num_increases = int(num_increases)
 
-			if battery_to_increase_voltage == None:
+			if battery_to_increase_voltage == None: #If there is no battery to accept the total increase, a random cell is increased by 0.01 power for as many times as 0.01 divides into the power change
 				voltage_change = 0.01 * BatteryManagementSystem.MAX_VOLTAGE
-				# num_increases = int(num_increases)
 				for increases in range(num_increases):
 					battery_to_increase_voltage = choice(self._batteryPack).batteryCell
 					battery_to_increase_voltage.updateVoltageData(new_power, voltage_change)
@@ -147,7 +147,7 @@ class BatteryManagementSystem():
 				battery_to_increase_current.updateCurrentData(new_power, current_change)
 				battery_to_increase_current.generateTemperatureData()
 			
-		else:
+		else: #If the battery is at full power, sets the batteries as such
 			for module in self._batteryPack:
 				module.batteryCell.updateVoltageData(new_power, 0)
 				module.batteryCell.updateCurrentData(new_power, 0)
@@ -269,14 +269,14 @@ class BatteryManagementSystem():
 
 	
 	def loadBalance(self, voltageList):
-		'''Execute load balancing if load is unbalanced'''
+		'''Execute load balancing if voltage across the battery pack has a difference of 15'''
 		required_voltage = self._power * BatteryManagementSystem.MAX_VOLTAGE
 		voltage_per_cell = required_voltage / BatteryManagementSystem.NUMBER_OF_BATTERIES
 		
-		for battery_index in range(BatteryManagementSystem.NUMBER_OF_BATTERIES):
+		for battery_index in range(BatteryManagementSystem.NUMBER_OF_BATTERIES): #Redistributes power evenly by increasing or discreasing each battery as required to reach the equalised voltage amount
 			voltage_change = voltage_per_cell - voltageList[battery_index]
 			self._batteryPack[battery_index].batteryCell.updateVoltageData(self._power, voltage_change)
-			voltageList[battery_index] = self._batteryPack[battery_index].batteryCell.voltage
+			voltageList[battery_index] = self._batteryPack[battery_index].batteryCell.voltage #Updates the passed in list of voltages for use with printing the results of load balancing
 
 
 	def stateOfChargeWarning(self):

@@ -80,16 +80,16 @@ class BatteryCell:
                 minRange = -1
         else:
             minRange = -3
-            maxRange = 1
+            maxRange = 5
             
-            # if 0.26 <= power and power <= 0.5:
-            #     maxRange = 8
-            # elif power <= 0.75:
-            #     maxRange  = 12
-            #     minRange = -2
-            # else:
-            #     maxRange = 15
-            #     minRange = 0
+            if 0.26 <= power and power <= 0.5:
+                maxRange = 7
+            elif power <= 0.75:
+                maxRange  = 9
+                minRange = -2
+            else:
+                maxRange = 11
+                minRange = -1
                 
             
         fluctuationValue = randint(minRange, maxRange)
