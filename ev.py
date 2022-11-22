@@ -20,7 +20,7 @@ class ElectricVehicle():
 
 
     def switchPowerState(self):
-        '''Switch power state of vehicle - on or off'''
+        '''Switch power state of vehicle - on or off.'''
         self._powerState = not self._powerState
 
         if self._powerState == False:
@@ -32,9 +32,7 @@ class ElectricVehicle():
         
         
     def powerStateOff(self):
-        # for process in self._process:
-            # process.terminate()
-
+        """Switch power state of the vehicle - off."""
         self._lowPowerMode = False
         self._power = 0 
         self._bms.powerOff()
@@ -44,7 +42,7 @@ class ElectricVehicle():
         
         
     def switchPowerMode(self):
-        '''Switch either into or out of low power mode'''
+        '''Switch either into or out of low power mode.'''
         self._lowPowerMode = not self._lowPowerMode
         
         if self._lowPowerMode:
@@ -53,23 +51,15 @@ class ElectricVehicle():
             self._powerLimit = 0
 
         
-    def limitPower(self):
-        while self._power > self._powerLimit:
-            # slowly decline the power
-            self._power -= 4
-        
-        
     def run(self):
         '''Simulation of a trip with an electric vehicle. \n
         BMS will constantly run its operations while the vehicle simulates different through different scenarios.\n
         UI will show these changes during the trip. '''
 
-        # with open("simulation.txt", "r") as f:
         simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0, "C", 30, 0.2, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
                       0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0]
  
 
-        # with tkinter, use after() to trigger processLoop to run it with tkintet
         for power in range(len(simulation)):
 
             if self._bms.stateOfCharge == 0:
@@ -95,6 +85,8 @@ class ElectricVehicle():
             if self._lowPowerMode and simulation[power] > 0.6:
                 self._power = 0.6
 
+            # check if the simulation includes charging
+            # number after charging represents the time charged
             if self._power == "C":
                 beforeCharge = self._bms.stateOfCharge
                 timeToCharge = simulation[power+1]
@@ -102,14 +94,17 @@ class ElectricVehicle():
                 print(f"Charging battery for: {timeToCharge}s")
                 print("----------------------------------------")
                 self.charge(timeToCharge)
+
                 afterCharge = self._bms.stateOfCharge
                 self.disconnectCharger(beforeCharge, afterCharge)
+                self._bms.calculateNewMaxCapacity()
                 continue
 
+            # skip the number after charging since it's not a power for the trip
             if simulation[power-1] == "C":
-                # skip the time for charge 
                 continue
 
+            # Check if the vehicle turns on or off during the simulation
             if self._power == 0:
                 if self._powerState == False:
                     self.switchPowerState()
@@ -118,6 +113,8 @@ class ElectricVehicle():
             
                 continue
 
+            # checks if the vehicle turns off in the middle of the trip
+            # Vehicle power right after turning on is 0.2.
             if self._power == 0.2 and simulation[power-1] == 0:
                 self._bms.powerOn(self._power)
                 continue
@@ -166,7 +163,7 @@ class ElectricVehicle():
             
     
     def display(self, frame):
-        '''Display what the BMS wants us to display onto the UI'''
+        '''Display what the BMS wants us to display. Simulates the UI.'''
         uiState = ""
         uiState += "========================================\n"
         uiState += f"Frame: {frame}\n"

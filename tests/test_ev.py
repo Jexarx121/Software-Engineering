@@ -1,6 +1,4 @@
 import unittest
-import sys, os
-sys.path.insert(1, "/home/misllocal/Desktop/code/Assignments/Software Engineering/")
 from ev import *
 
 class TestEv(unittest.TestCase):

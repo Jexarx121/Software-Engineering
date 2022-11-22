@@ -4,6 +4,7 @@ from temperatureSensor import TemperatureSensor
 from  voltageSensor import VoltageSensor
 
 class BatteryModule(object):
+    """Simulating a cluster of a battery cell and 3 sensors to track the battery's current, voltage and temperature."""
     def __init__(self, max_voltage, max_current):
         self._batteryCell = BatteryCell(max_voltage, max_current)
         self._currentSensor = CurrentSensor()

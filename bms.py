@@ -8,24 +8,17 @@ from time import time
 class BatteryManagementSystem():
 	'''Represents a battery management system for an electric vehicle.'''
 
-	BATTERY_MANUFACTURE_DATE = date(2021, 1, 1)
-	BATTERY_LIFETIME_ESTIMATE = 365 * 9
-
+	# All constants are based off of real life statistics and averaged between low to high ranges.
 	NUMBER_OF_BATTERIES = 8
 	DEPTH_OF_DISCHARGE = 100
-	# Assuming 80 - 100% DOD
-	CHARGE_DISCHARGE_MAXIMUM = 500
+	CHARGE_DISCHARGE_MAXIMUM = 500 #Based off 100% DOD.
 	MIN_TEMPERATURE = 12
 	MAX_TEMPERATURE = 50
 	MAX_VOLTAGE = 500
 	MAX_CURRENT = 200
 	VOLTAGE_DIFF = 15
-
-	# Kilometers that this vehicle can travel on 100% SOC
-	MAXIMUM_DISTANCE = 300
-
-	# This is the capacity at manufacture date based on voltage threshold
-	BATTERY_PACK_CAPACITY = 87.5
+	MAXIMUM_DISTANCE = 300 # Kilometers that this vehicle can travel on 100% SOC
+	BATTERY_PACK_CAPACITY = 87.5 # This is the capacity at manufacture date based on voltage threshold
 
 	def __init__(self):
 
@@ -36,7 +29,7 @@ class BatteryManagementSystem():
 
 		self.odometer = Odometer()
 
-		self._stateOfCharge = 50
+		self._stateOfCharge = 50 # can start off at any number here between 0 - 100
 		self._distanceDriven = self.distanceDriven()
 
 		self._initialStateOfCharge = 100
@@ -45,15 +38,18 @@ class BatteryManagementSystem():
 		# charge discharge cycles only increase after car stops and turns on again after charging or discharging entirely 
 		self._chargeDischargeCycles = 129.3
 
-		# Might have to round this off depending on numbers
-		self._maxCapacity = (1 - (self._chargeDischargeCycles / BatteryManagementSystem.CHARGE_DISCHARGE_MAXIMUM)) * BatteryManagementSystem.BATTERY_PACK_CAPACITY
-		self._distanceRemaining = BatteryManagementSystem.MAXIMUM_DISTANCE * (self._stateOfCharge/100)
+		self._maxCapacity = 0
+		self.calculateNewMaxCapacity()
 
 		self._stateOfHealth = 0
 		self.sohAlgorithm()
+
+		self._distanceRemaining = BatteryManagementSystem.MAXIMUM_DISTANCE * (self._stateOfCharge/100)
 		self._chargeThreshold = 100
 
+
 	def startProcess(self, power):
+		"""Runs function to updata data in the batteries, retrieve them from the sensors and processes them with all other bms functions."""
 		
 		start = time()
   
@@ -87,7 +83,7 @@ class BatteryManagementSystem():
 
      
 	def powerOff(self):
-		"""'Turns off' each battery in the battery pack by setting all values to 0"""
+		"""'Turns off each battery in the battery pack by setting all values to 0"""
 		for module in self._batteryPack:
 			module.batteryCell.state = False
 			module.batteryCell.updateVoltageData(0, 0)
@@ -188,7 +184,6 @@ class BatteryManagementSystem():
 		self.printLists(temperatureList, voltageList, currentList)
 
 		if max(temperatureList) > BatteryManagementSystem.MAX_TEMPERATURE:
-			# increasing the power needed
 			self.cooling(temperatureList)
 			self.printAfterCooling(temperatureList)
 			
@@ -205,7 +200,6 @@ class BatteryManagementSystem():
 	def distanceDriven(self):
 		'''Get the distance driven on current charge from the max distance.'''
 		distanceDriven = BatteryManagementSystem.MAXIMUM_DISTANCE * (1 - (self._stateOfCharge/100))
-  #distance driven = 300* (1- 0.5) = 150
 		return distanceDriven
 		
 
@@ -224,7 +218,6 @@ class BatteryManagementSystem():
 	def sohAlgorithm(self):
 		'''SOH is calculated by getting the average of charge/discharge cycles lifetime and battery lifetime, based on estimated lifetimes.'''
 		
-		# print(f"Max capacity: {self._maxCapacity}")
 		self._stateOfHealth = (self._maxCapacity / BatteryManagementSystem.BATTERY_PACK_CAPACITY) * 100
 
 
@@ -233,7 +226,6 @@ class BatteryManagementSystem():
 		Based off that, calculate the distance remaining.\n
 		Add the distance driven to the odometer too.'''
 
-		# todo - if charged up breaks the calculation
 		#need to get the difference between distance driven before update and after
 		lastDistanceDriven = self._distanceDriven
 		#now update it based on new soc
@@ -259,7 +251,7 @@ class BatteryManagementSystem():
 					temperatureList[temperature] -= 1
 				else: 
 					if self._batteryPack[temperature].batteryCell.temperature <= BatteryManagementSystem.MIN_TEMPERATURE:
-						#this prevents it from going to low
+						#this prevents the temperature from going too low
 						continue
 					self._batteryPack[temperature].batteryCell.temperature -= 0.5
 					temperatureList[temperature] -= 0.5
@@ -269,7 +261,7 @@ class BatteryManagementSystem():
 
 	
 	def loadBalance(self, voltageList):
-		'''Execute load balancing if voltage across the battery pack has a difference of 15'''
+		'''Execute load balancing if voltage across the battery pack has a difference of 15 volts.'''
 		required_voltage = self._power * BatteryManagementSystem.MAX_VOLTAGE
 		voltage_per_cell = required_voltage / BatteryManagementSystem.NUMBER_OF_BATTERIES
 		
@@ -279,6 +271,11 @@ class BatteryManagementSystem():
 			voltageList[battery_index] = self._batteryPack[battery_index].batteryCell.voltage #Updates the passed in list of voltages for use with printing the results of load balancing
 
 
+	def calculateNewMaxCapacity(self):
+		"""Calculates the new max capacity after charge/discharge cycles have been incremented."""
+		self._maxCapacity =  (1 - (self._chargeDischargeCycles / BatteryManagementSystem.CHARGE_DISCHARGE_MAXIMUM)) * BatteryManagementSystem.BATTERY_PACK_CAPACITY
+		
+
 	def stateOfChargeWarning(self):
 		'''Warnings that display to the UI based on the current SOC.'''
 
@@ -287,23 +284,26 @@ class BatteryManagementSystem():
 		elif self._stateOfCharge < 25:
 			return "Please consider charging soon. Battery percentage is low."
 		elif self._stateOfCharge == 100:
-			return "Battery Percent is now 100%."
+			return "Battery Percent is now full. Please disconnect charger if plugged in."
 		
 		return ""
+
 
 	def stateOfHealthWarning(self):
 		'''Warnings that display to the UI based on the current SOH.'''
 
-		if self._stateOfHealth < 10:
-			return "Battery health is severly deteriorated."
-		elif self._stateOfHealth < 25:
+		if self._stateOfHealth < 40:
+			return "Battery health is severely deteriorated."
+		elif self._stateOfHealth < 60:
 			return "Battery health is very deteriorated. "
-		elif self._stateOfHealth < 50:
+		elif self._stateOfHealth < 75:
 			return "Battery health has deteriorated."
 
 		return ""
 
+
 	def printLists(self, temperatureList, voltageList, currentList):
+		"""Prints out the list of sensor data after retrieving it."""
 		print("----------------------------------------")
 		print("Sensor Values for temperature, voltage and current")
 		print(f"Temperature List: {temperatureList}")
@@ -311,13 +311,19 @@ class BatteryManagementSystem():
 		print(f"Current List: {currentList}")
 		print("----------------------------------------")
 
+
 	def printAfterCooling(self, temperatureList):
+		"""Prints out the temperature of the list after cooling funciton has occured.\n
+		These values also show up on the battery cell itself based off index of the battery pack list."""
 		print("----------------------------------------")
 		print("Sensor values for temperature after cooling")
 		print(f"Temperature List: {temperatureList}")
 		print("----------------------------------------")
 
+
 	def printAfterLoadBalancing(self, voltageList):
+		"""Prints out the voltage of the list after load balancing funciton has occured.\n
+		These values also show up on the battery cell itself based off index of the battery pack list."""
 		print("----------------------------------------")
 		print("Sensor values for voltage after cooling")
 		print(f"Voltage List: {voltageList}")
