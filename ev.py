@@ -22,6 +22,7 @@ class ElectricVehicle():
     def switchPowerState(self):
         '''Switch power state of vehicle - on or off.'''
         self._powerState = not self._powerState
+        print(self._powerState)
 
         if self._powerState == False:
             self.powerStateOff()
@@ -56,7 +57,7 @@ class ElectricVehicle():
         BMS will constantly run its operations while the vehicle simulates different through different scenarios.\n
         UI will show these changes during the trip. '''
 
-        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0, "C", 30, 0.2, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
+        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0, "C", 30, 0, 0.2, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
                       0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0]
  
 
@@ -106,11 +107,7 @@ class ElectricVehicle():
 
             # Check if the vehicle turns on or off during the simulation
             if self._power == 0:
-                if self._powerState == False:
-                    self.switchPowerState()
-                else:
-                    self.switchPowerState()
-            
+                self.switchPowerState()
                 continue
 
             # checks if the vehicle turns off in the middle of the trip
@@ -167,10 +164,10 @@ class ElectricVehicle():
         uiState = ""
         uiState += "========================================\n"
         uiState += f"Frame: {frame}\n"
-        uiState += f"Current Charge: {self._bms.stateOfCharge}%\n"
-        uiState += f"Distance Remaining (est): {self._bms.distanceRemaining}km\n"
-        uiState += f"Health Status: {self._bms.stateOfHealth}%\n"
-        uiState += f"Total Mileage: {self._bms.odometer.mileage}km\n"
+        uiState += f"Current Charge: {round(self._bms.stateOfCharge, 2)}%\n"
+        uiState += f"Distance Remaining (est): {round(self._bms.distanceRemaining, 2)}km\n"
+        uiState += f"Health Status: {round(self._bms.stateOfHealth, 2)}%\n"
+        uiState += f"Total Mileage: {round(self._bms.odometer.mileage, 2)}km\n"
         if self._lowPowerMode:
             uiState += f"Low Power Mode is enabled\n"
 
@@ -190,7 +187,6 @@ class ElectricVehicle():
 if __name__ == "__main__":
     ev = ElectricVehicle()
     ev.run()
-
 
 
     

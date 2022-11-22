@@ -36,7 +36,6 @@ class BatteryCell:
         if power == 0:
             self._current = 0
         else:
-            print(f"Current Change: {current_change}")
             
             fluctuation = self.fluctuateData(power, "current")
             current_change += fluctuation

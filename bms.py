@@ -249,12 +249,13 @@ class BatteryManagementSystem():
 				if temperatureList[temperature] >= BatteryManagementSystem.MAX_TEMPERATURE:
 					self._batteryPack[temperature].batteryCell.temperature -= 1
 					temperatureList[temperature] -= 1
-				else: 
-					if self._batteryPack[temperature].batteryCell.temperature <= BatteryManagementSystem.MIN_TEMPERATURE:
-						#this prevents the temperature from going too low
-						continue
+				elif temperatureList[temperature] <= BatteryManagementSystem.MIN_TEMPERATURE:
+					continue
+				else:
 					self._batteryPack[temperature].batteryCell.temperature -= 0.5
 					temperatureList[temperature] -= 0.5
+
+				# print(temperatureList)
 
 			if max(temperatureList) < BatteryManagementSystem.MAX_TEMPERATURE:
 				break
@@ -325,7 +326,7 @@ class BatteryManagementSystem():
 		"""Prints out the voltage of the list after load balancing funciton has occured.\n
 		These values also show up on the battery cell itself based off index of the battery pack list."""
 		print("----------------------------------------")
-		print("Sensor values for voltage after cooling")
+		print("Sensor values for voltage after load balancing.")
 		print(f"Voltage List: {voltageList}")
 		print("----------------------------------------")
 

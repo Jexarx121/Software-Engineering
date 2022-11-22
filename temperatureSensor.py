@@ -7,7 +7,7 @@ class TemperatureSensor(Sensor):
      self._temperatureValue = 0
 
   def readBattery(self, battery):
-      self._temperatureValue = battery.getTemperature()
+      self._temperatureValue = battery.temperature
 
   def getTemperatureValue(self):
     return self._temperatureValue
