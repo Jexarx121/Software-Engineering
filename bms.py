@@ -254,8 +254,6 @@ class BatteryManagementSystem():
 					self._batteryPack[temperature].batteryCell.temperature -= 0.5
 					temperatureList[temperature] -= 0.5
 
-				# print(temperatureList)
-
 			if max(temperatureList) < BatteryManagementSystem.MAX_TEMPERATURE:
 				break
 
@@ -297,7 +295,7 @@ class BatteryManagementSystem():
 		elif self._stateOfHealth < 60:
 			return "Battery health is very deteriorated. "
 		elif self._stateOfHealth < 75:
-			return "Battery health has deteriorated."
+			return "Battery health has slightly deteriorated."
 
 		return ""
 

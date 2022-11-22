@@ -18,7 +18,6 @@ class ElectricVehicle():
     def switchPowerState(self):
         '''Switch power state of vehicle - on or off.'''
         self._powerState = not self._powerState
-        print(self._powerState)
 
         if self._powerState == False:
             self.powerStateOff()
@@ -53,8 +52,9 @@ class ElectricVehicle():
         BMS will constantly run its operations while the vehicle simulates different through different scenarios.\n
         UI will show these changes during the trip. '''
 
-        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0, "C", 30, 0, 0.2, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
-                      0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0]
+        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0.25, 0, "C", 30, 0, 0.2, 0.45, 0.5, 0.55, 0.6,
+                      0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
+                      0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0.45, 0.35, 0.2, 0]
  
 
         for power in range(len(simulation)):
@@ -87,9 +87,6 @@ class ElectricVehicle():
             if self._power == "C":
                 beforeCharge = self._bms.stateOfCharge
                 timeToCharge = simulation[power+1]
-                print("----------------------------------------")
-                print(f"Charging battery for: {timeToCharge}s")
-                print("----------------------------------------")
                 self.charge(timeToCharge)
 
                 afterCharge = self._bms.stateOfCharge
@@ -133,17 +130,21 @@ class ElectricVehicle():
         Changes charging state and increments the charge/discharge cycles.\n
         State of charge starts to trickle when reaching 100% to avoid overcharging.\n
         Charging only stops time to charge is decremented to zero.'''
-        if timeToCharge > 0:
+        if timeToCharge < 0:
             return "Time to charge should be a value greater than 0."
+
 
         if self._powerState == False:
             self.switchPowerState()
             self._charging = True
         
+        print("----------------------------------------")
+        print(f"Charging battery for: {timeToCharge}s")
+        print("----------------------------------------")
         charge = self._bms.stateOfCharge
         while timeToCharge > 0:
         
-            sleep(1)
+            sleep(0.2)
             if charge == self._bms._chargeThreshold:
                 # Trickling to prevent overcharge
                 self._bms.stateOfCharge -= 1
