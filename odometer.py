@@ -1,4 +1,3 @@
-from random import randint
 
 class Odometer:
     """Keeps the total mileage that the vehicle has driven in its lifetime."""

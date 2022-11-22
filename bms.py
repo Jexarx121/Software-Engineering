@@ -1,7 +1,6 @@
 from batteryModule import BatteryModule
 from odometer import Odometer
-from datetime import date
-from random import randint, choice
+from random import choice
 from time import time
 
 

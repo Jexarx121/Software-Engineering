@@ -1,10 +1,6 @@
-from battery import BatteryCell
-from ui import UI
-from random import randint
 from bms import BatteryManagementSystem
 from time import sleep
-from multiprocessing import Process
-from threading import Thread
+
 
 class ElectricVehicle():
     """Represents an electrical vehicle."""
