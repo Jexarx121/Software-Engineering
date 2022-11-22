@@ -9,7 +9,6 @@ class BatteryManagementSystem():
 
 	# All constants are based off of real life statistics and averaged between low to high ranges.
 	NUMBER_OF_BATTERIES = 8
-	DEPTH_OF_DISCHARGE = 100
 	CHARGE_DISCHARGE_MAXIMUM = 500 #Based off 100% DOD.
 	MIN_TEMPERATURE = 12
 	MAX_TEMPERATURE = 50

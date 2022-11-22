@@ -53,12 +53,11 @@ class ElectricVehicle():
         UI will show these changes during the trip. '''
 
         simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0.25, 0, "C", 30, 0, 0.2, 0.45, 0.5, 0.55, 0.6,
-                      0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
-                      0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0.45, 0.35, 0.2, 0]
+                      0.65, 0.7, 0.75, 0.8, 0.85, 0.95, 0.9, 0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, "L", 0.35, 0.33, 0.25, 0.2, 0]
  
 
         for power in range(len(simulation)):
-
+        
             if self._bms.stateOfCharge == 0:
                 self._bms.powerOff()
                 self.switchPowerState()
@@ -70,6 +69,7 @@ class ElectricVehicle():
 
             if simulation[power] == "L" and self._lowPowerMode == False:
                 if simulation[power-1] >= 0.6:
+                    print("*Warning* can NOT enter Low Power mode as you are currently using too much power. Reduce Speed to enter Low Power mode")
                     continue
                 else:
                     self.switchPowerMode()
@@ -118,11 +118,12 @@ class ElectricVehicle():
         if self._charging:
             self._charging = False
 
-            incrementCycle = (afterCharge - beforeCharge / 100) / BatteryManagementSystem.DEPTH_OF_DISCHARGE
+            incrementCycle = (afterCharge - beforeCharge) /100
             print("----------------------------------------")
             print(f"Charge/discharge cycles increased by: {incrementCycle}")
             print("----------------------------------------")
             self._bms.chargeDischargeCycles += incrementCycle
+            self.switchPowerState() #turn off EV
         
 
     def charge(self, timeToCharge):
@@ -144,7 +145,7 @@ class ElectricVehicle():
         charge = self._bms.stateOfCharge
         while timeToCharge > 0:
         
-            sleep(0.2)
+            sleep(0.2) 
             if charge == self._bms._chargeThreshold:
                 # Trickling to prevent overcharge
                 self._bms.stateOfCharge -= 1
@@ -161,6 +162,7 @@ class ElectricVehicle():
         uiState = ""
         uiState += "========================================\n"
         uiState += f"Frame: {frame}\n"
+        uiState += f"Required power for this frame ({frame}): {self._power}\n"
         uiState += f"Current Charge: {round(self._bms.stateOfCharge, 2)}%\n"
         uiState += f"Distance Remaining (est): {round(self._bms.distanceRemaining, 2)}km\n"
         uiState += f"Health Status: {round(self._bms.stateOfHealth, 2)}%\n"
