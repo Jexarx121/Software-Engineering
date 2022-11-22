@@ -365,7 +365,7 @@ class BatteryManagementSystem():
 		return self._chargeDischargeCycles
 
 	def setChargeDischargeCycles(self, value):
-		self._chargeDischargeCycles += value
+		self._chargeDischargeCycles = value
 	
 	def getInitialStateOfCharge(self):
 		return self._initialStateOfCharge
