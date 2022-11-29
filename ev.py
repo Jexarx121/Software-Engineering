@@ -34,9 +34,6 @@ class ElectricVehicle():
         self._lowPowerMode = False
         self._power = 0 
         self._bms.powerOff()
-        print("----------------------------------------")
-        print(f"Vehicle shutting down.")
-        print("----------------------------------------")
         
         
     def switchPowerMode(self):
@@ -45,8 +42,10 @@ class ElectricVehicle():
         
         if self._lowPowerMode:
             self._powerLimit = 0.6
+            self._ui._lowPowerModeLabel['text'] = "Low Power Mode is enabled."
         else:
             self._powerLimit = 0
+            self._ui._lowPowerModeLabel['text'] = ""
 
         
     def run(self):
@@ -76,7 +75,7 @@ class ElectricVehicle():
             # Forces car to ignore powers greater than 0.6
             if simulation[power] == "L" and self._lowPowerMode == False:
                 if simulation[power-1] >= 0.6:
-                    print("*Warning* can NOT enter Low Power mode as you are currently using too much power. Reduce Speed to enter Low Power mode")
+                    print("*Warning* Can NOT enter Low Power mode. Reduce speed to enter Low Power mode")
                     continue
                 else:
                     self.switchPowerMode()
@@ -92,10 +91,7 @@ class ElectricVehicle():
             # number after charging represents the time charged
             if self._power == "C":
                 timeToCharge = simulation[power+1]
-                print("----------------------------------------")
-                print(f"Charging battery for: {timeToCharge}s")
-                print("----------------------------------------")
-                Thread(target=self.charge, args=(timeToCharge)).start()
+                self.charge(timeToCharge)
 
                 continue
 
@@ -143,7 +139,7 @@ class ElectricVehicle():
         Changes charging state and increments the charge/discharge cycles.\n
         State of charge starts to trickle when reaching 100% to avoid overcharging.\n
         Charging only stops time to charge is decremented to zero.'''
-        if timeToCharge > 0:
+        if timeToCharge <= 0:
             return "Time to charge should be a value greater than 0."
 
         if self._powerState == False:
@@ -151,26 +147,33 @@ class ElectricVehicle():
             self._charging = True
 
         beforeCharge = self._bms.stateOfCharge
-
-        while timeToCharge > 0:
-            sleep(1)
+        while timeToCharge > 0: 
+            
             if self._bms.stateOfCharge == self._bms._chargeThreshold:
                 # Trickling to prevent overcharge
                 self._bms.stateOfCharge -= 1
 
+            # increment charge and decrement timer
             self._bms.stateOfCharge += 1
             timeToCharge -= 1
 
+            # update the ui correspondly to the incrementing charge
+            self._ui._batteryPercentLabel['text'] = f"Battery Percent: {round(self._bms.stateOfCharge, 2)}%"
+            self._ui._batteryPercentProgress['value'] = self._bms.stateOfCharge
+            self._ui._chargeLabel['text'] = f"Vehicle is currently charging. ({timeToCharge}s)."
+
+            sleep(1)
+
         #need to update distance driven to match new soc
         self._bms._distanceDriven = self._bms.distanceDriven()
-        self._ui._batteryPercentLabel['text'] = f"Battery Percent: {round(self._bms.stateOfCharge, 2)}%"
-
         afterCharge = self._bms.stateOfCharge
+
+        self._ui._chargeLabel['text'] = ""
         self.disconnectCharger(beforeCharge, afterCharge)
             
     
     def display(self):
-        '''Display what the BMS wants us to display. Simulates the UI.'''
+        '''Display what the BMS wants us to display onto the UI.'''
         self._ui._batteryPercentProgress['value'] = self._bms.stateOfCharge
         self._ui._batteryPercentLabel['text'] = f"Battery Percent: {round(self._bms.stateOfCharge, 2)}%"
         self._ui._healthPercentProgress['value'] = self._bms.stateOfHealth

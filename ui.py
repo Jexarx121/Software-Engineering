@@ -5,7 +5,7 @@ from time import sleep
 class UI():
     def __init__(self):
         
-        height = 400
+        height = 500
         width = 700
         self._background = "#2e2e2e"
         self._font = ('Times New Roman', 20)
@@ -66,6 +66,9 @@ class UI():
 
         self._vehicleOffLabel = Label(self._root, text="", fg="white", bg=self._background, font=self._warningFont)
         self._vehicleOffLabel.grid(row=4, column=0, columnspan=2, sticky="sw", padx=20, pady=10)
+
+        self._chargeLabel = Label(self._root, text="", fg="yellow", bg=self._background, font=self._warningFont)
+        self._chargeLabel.grid(row=5, column=0, columnspan=2, sticky="sw", padx=20, pady=10)
 
         self._root.update()
 
