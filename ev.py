@@ -76,6 +76,7 @@ class ElectricVehicle():
             # Forces car to ignore powers greater than 0.6
             if simulation[power] == "L" and self._lowPowerMode == False:
                 if simulation[power-1] >= 0.6:
+                    print("*Warning* can NOT enter Low Power mode as you are currently using too much power. Reduce Speed to enter Low Power mode")
                     continue
                 else:
                     self.switchPowerMode()
@@ -128,7 +129,7 @@ class ElectricVehicle():
         if self._charging:
             self._charging = False
 
-            incrementCycle = (afterCharge - beforeCharge / 100) / BatteryManagementSystem.DEPTH_OF_DISCHARGE
+            incrementCycle = (afterCharge - beforeCharge) /100
             print("----------------------------------------")
             print(f"Charge/discharge cycles increased by: {incrementCycle}")
             print("----------------------------------------")
