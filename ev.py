@@ -1,6 +1,7 @@
 from bms import BatteryManagementSystem
 from time import sleep
-
+from threading import Thread
+from ui import UI
 
 class ElectricVehicle():
     """Represents an electrical vehicle."""
@@ -13,6 +14,7 @@ class ElectricVehicle():
         self._bms = BatteryManagementSystem()
         self._process = []
         self._charging = False      
+        self._ui = UI()
 
 
     def switchPowerState(self):
@@ -52,30 +54,33 @@ class ElectricVehicle():
         BMS will constantly run its operations while the vehicle simulates different through different scenarios.\n
         UI will show these changes during the trip. '''
 
-        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0.25, 0, "C", 30, 0, 0.2, 0.45, 0.5, 0.55, 0.6,
-                      0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
-                      0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0.45, 0.35, 0.2, 0]
- 
+        simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0, "C", 30, 0, 0.2, 0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
+                      0.85, 0.80, 0.75, 0.70, 0.65, 0.60, 0.55, 0]
+        self.display()
+        sleep(1)
 
         for power in range(len(simulation)):
+            self._power = simulation[power]
 
+            # sleep before starting each thread
+            # printState = Thread(target=self.display)
+            # printState.start()
+
+            # turn off vehicle with SOC reaching 0
             if self._bms.stateOfCharge == 0:
                 self._bms.powerOff()
                 self.switchPowerState()
                 break
-
-            self._power = simulation[power]
-            uiState = self.display(power)
-            print(uiState)
-
+            
+            # Toggles Low power mode 
+            # Forces car to ignore powers greater than 0.6
             if simulation[power] == "L" and self._lowPowerMode == False:
                 if simulation[power-1] >= 0.6:
                     continue
                 else:
                     self.switchPowerMode()
                     continue
-                
-            if simulation[power] == "L" and self._lowPowerMode:
+            elif simulation[power] == "L" and self._lowPowerMode:
                 self.switchPowerMode()
                 continue
             
@@ -85,15 +90,15 @@ class ElectricVehicle():
             # check if the simulation includes charging
             # number after charging represents the time charged
             if self._power == "C":
-                beforeCharge = self._bms.stateOfCharge
                 timeToCharge = simulation[power+1]
-                self.charge(timeToCharge)
+                print("----------------------------------------")
+                print(f"Charging battery for: {timeToCharge}s")
+                print("----------------------------------------")
+                Thread(target=self.charge, args=(timeToCharge)).start()
 
-                afterCharge = self._bms.stateOfCharge
-                self.disconnectCharger(beforeCharge, afterCharge)
-                self._bms.calculateNewMaxCapacity()
                 continue
 
+            
             # skip the number after charging since it's not a power for the trip
             if simulation[power-1] == "C":
                 continue
@@ -111,6 +116,11 @@ class ElectricVehicle():
 
             self._bms.startProcess(self._power)
 
+            sleep(1)
+            self.display()
+
+        self._ui.exit()
+
 
     def disconnectCharger(self, beforeCharge, afterCharge):
         '''Disconnects the charger after charging time is finished.\n
@@ -123,6 +133,8 @@ class ElectricVehicle():
             print(f"Charge/discharge cycles increased by: {incrementCycle}")
             print("----------------------------------------")
             self._bms.chargeDischargeCycles += incrementCycle
+
+        self._bms.calculateNewMaxCapacity()
         
 
     def charge(self, timeToCharge):
@@ -130,60 +142,54 @@ class ElectricVehicle():
         Changes charging state and increments the charge/discharge cycles.\n
         State of charge starts to trickle when reaching 100% to avoid overcharging.\n
         Charging only stops time to charge is decremented to zero.'''
-        if timeToCharge < 0:
+        if timeToCharge > 0:
             return "Time to charge should be a value greater than 0."
-
 
         if self._powerState == False:
             self.switchPowerState()
             self._charging = True
-        
-        print("----------------------------------------")
-        print(f"Charging battery for: {timeToCharge}s")
-        print("----------------------------------------")
-        charge = self._bms.stateOfCharge
+
+        beforeCharge = self._bms.stateOfCharge
+
         while timeToCharge > 0:
-        
-            sleep(0.2)
-            if charge == self._bms._chargeThreshold:
+            sleep(1)
+            if self._bms.stateOfCharge == self._bms._chargeThreshold:
                 # Trickling to prevent overcharge
                 self._bms.stateOfCharge -= 1
 
             self._bms.stateOfCharge += 1
-
             timeToCharge -= 1
+
         #need to update distance driven to match new soc
         self._bms._distanceDriven = self._bms.distanceDriven()
+        self._ui._batteryPercentLabel['text'] = f"Battery Percent: {round(self._bms.stateOfCharge, 2)}%"
+
+        afterCharge = self._bms.stateOfCharge
+        self.disconnectCharger(beforeCharge, afterCharge)
             
     
-    def display(self, frame):
+    def display(self):
         '''Display what the BMS wants us to display. Simulates the UI.'''
-        uiState = ""
-        uiState += "========================================\n"
-        uiState += f"Frame: {frame}\n"
-        uiState += f"Current Charge: {round(self._bms.stateOfCharge, 2)}%\n"
-        uiState += f"Distance Remaining (est): {round(self._bms.distanceRemaining, 2)}km\n"
-        uiState += f"Health Status: {round(self._bms.stateOfHealth, 2)}%\n"
-        uiState += f"Total Mileage: {round(self._bms.odometer.mileage, 2)}km\n"
+        self._ui._batteryPercentProgress['value'] = self._bms.stateOfCharge
+        self._ui._batteryPercentLabel['text'] = f"Battery Percent: {round(self._bms.stateOfCharge, 2)}%"
+        self._ui._healthPercentProgress['value'] = self._bms.stateOfHealth
+        self._ui._healthPercentLabel['text'] = f"Battery Health: {round(self._bms.stateOfHealth, 2)}%"
+
+        self._ui._distanceRemaining['text'] = f"{round(self._bms.distanceRemaining, 2)}km" 
+        self._ui._totalMileage['text'] = f"{round(self._bms.odometer.mileage, 2)}km"
+
         if self._lowPowerMode:
-            uiState += f"Low Power Mode is enabled\n"
+            self._ui._lowPowerModeLabel['text'] = "Low Power Mode is enabled."
 
-        if self._bms.stateOfChargeWarning:
-            warning  = self._bms.stateOfChargeWarning()
-            uiState += f"{warning}\n"
-
-        if self._bms.stateOfHealthWarning:
-            warning = self._bms.stateOfHealthWarning()
-            uiState += f"{warning}\n"
-
-        uiState += "========================================\n"
-
-        return uiState
+        self._ui._socWarning['text'] = self._bms.stateOfChargeWarning()
+        self._ui._sohWarning['text'] = self._bms.stateOfHealthWarning()
 
 
 if __name__ == "__main__":
     ev = ElectricVehicle()
-    ev.run()
+    start = Thread(target=ev.run)
+    start.start()
+    ev._ui._root.mainloop()
 
 
     

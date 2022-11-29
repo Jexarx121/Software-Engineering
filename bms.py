@@ -45,6 +45,7 @@ class BatteryManagementSystem():
 
 		self._distanceRemaining = BatteryManagementSystem.MAXIMUM_DISTANCE * (self._stateOfCharge/100)
 		self._chargeThreshold = 100
+		
 
 
 	def startProcess(self, power):
