@@ -1,7 +1,7 @@
 from batteryModule import BatteryModule
 from odometer import Odometer
 from random import choice
-from time import time
+from time import perf_counter
 
 
 class BatteryManagementSystem():
@@ -50,14 +50,14 @@ class BatteryManagementSystem():
 	def startProcess(self, power):
 		"""Runs function to updata data in the batteries, retrieve them from the sensors and processes them with all other bms functions."""
 		
-		start = time()
+		start = perf_counter()
   
 		self.demandPower(power)
 		
 		dataSet = self.getData()
 		totalCurrent = self.processData(dataSet[0], dataSet[1], dataSet[2])
   
-		end = time()
+		end = perf_counter()
 		difference = end - start
 
 		self.sohAlgorithm()

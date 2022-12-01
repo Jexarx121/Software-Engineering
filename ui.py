@@ -75,7 +75,7 @@ class UI():
 
     def exit(self):
         self._vehicleOffLabel['text'] = "Vehicle is shutting down."
-        sleep(1)
+        sleep(2.5)
         self._root.destroy()
 
 
@@ -88,7 +88,6 @@ class UI():
         else:
             self._totalMileageLabel.grid()
             self._totalMileage.grid(row=3, column=1, padx=10, pady=10) 
-
 
 
 if __name__ == "__main__":
