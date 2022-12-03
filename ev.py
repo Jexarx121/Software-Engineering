@@ -102,7 +102,7 @@ class ElectricVehicle():
                 continue
 
             # turn off vehicle with SOC reaching 0
-            if self._bms.stateOfCharge == 0:
+            if self._bms.stateOfCharge <= 0:
                 self._bms.powerOff()
                 self.switchPowerState()
                 break
@@ -125,7 +125,8 @@ class ElectricVehicle():
             sleep(1)
             self.display()
 
-        self._ui.exit()
+        # Give a delay before closing tkinter window for thread to end
+        self._ui._root.after(100, self._ui.exit)
 
     def disconnectCharger(self, beforeCharge, afterCharge):
         '''Disconnects the charger after charging time is finished.\n

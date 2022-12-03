@@ -11,6 +11,7 @@ class UI():
         self._font = ('Times New Roman', 20)
         self._warningFont = ('Times New Roman', 16)
         self._toggle = False
+        self._stop = False
 
         self._root = Tk()
         self._root.title("Infobtainment Screen")
@@ -64,9 +65,11 @@ class UI():
         self._sohWarning = Label(self._root, text="Test", bg=self._background, fg="red", font=self._warningFont)
         self._sohWarning.grid(row=3, column=0, columnspan=2, sticky="sw", padx=20, pady=10)
 
+        # label to announce vehicle is turning off
         self._vehicleOffLabel = Label(self._root, text="", fg="white", bg=self._background, font=self._warningFont)
         self._vehicleOffLabel.grid(row=4, column=0, columnspan=2, sticky="sw", padx=20, pady=10)
 
+        # Only shows when the vehicle is charging.
         self._chargeLabel = Label(self._root, text="", fg="yellow", bg=self._background, font=self._warningFont)
         self._chargeLabel.grid(row=5, column=0, columnspan=2, sticky="sw", padx=20, pady=10)
 
@@ -75,7 +78,8 @@ class UI():
 
     def exit(self):
         self._vehicleOffLabel['text'] = "Vehicle is shutting down."
-        sleep(2.5)
+        sleep(1)
+        self._stop = True
         self._root.destroy()
 
 
@@ -88,6 +92,12 @@ class UI():
         else:
             self._totalMileageLabel.grid()
             self._totalMileage.grid(row=3, column=1, padx=10, pady=10) 
+
+    def getStop(self):
+        return self._stop
+
+    stop = property(getStop)
+
 
 
 if __name__ == "__main__":
