@@ -58,6 +58,9 @@ class ElectricVehicle():
         sleep(1)
         
         for power in range(len(simulation)):
+            print("====================================")
+            print(f"Frame: {power}")
+            print("====================================")
             self._power = simulation[power]
             
             if simulation[power-1] == "C":
@@ -209,7 +212,7 @@ class ElectricVehicle():
 if __name__ == "__main__":
     simulation = [0, 0.2, 0.23, 0.24, 0.28, 0.31, 0.33, 0.37, 0, "C", 5, 0, 0.2,
                   0.45, 0.5, 0.55, 0.6, 0.65, 0.7, 0.75, 0.8, 0.85, 0.9, 0.95, 0.95, 0.95, 0.95, 0.9,
-                  0.85, 0.80, 0.75, 0.70, 0.65, 0.59, "L", 0.3, 0.4, "L", 0]
+                  0.85, 0.80, 0.75, 0.70, 0.65,"L", 0.59, 0.3, 0.4, 0.42, 0.43, 0.39, "L", 0]
 
     ev = ElectricVehicle()
     ev.run(simulation)
